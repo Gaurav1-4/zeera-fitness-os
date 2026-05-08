@@ -7,22 +7,33 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useAIInsights, useStreakCalculator, useDailyReset } from "@/hooks/useSmartEngine";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { onboarded } = useAppStore();
+  const [isHydrated, setIsHydrated] = useState(false);
   
   useEffect(() => {
-    if (!onboarded) {
+    setIsHydrated(useAppStore.persist.hasHydrated());
+    const unsub = useAppStore.persist.onFinishHydration(() => setIsHydrated(true));
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    if (isHydrated && !onboarded) {
       router.push("/onboarding");
     }
-  }, [onboarded, router]);
+  }, [isHydrated, onboarded, router]);
 
-  if (!onboarded) {
-    return null;
+  if (!isHydrated || !onboarded) {
+    return (
+      <div className="h-dvh w-full bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-neon-green/30 border-t-neon-green rounded-full animate-spin" />
+      </div>
+    );
   }
 
   // Background engines
