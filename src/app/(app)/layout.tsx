@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useAIInsights, useStreakCalculator, useDailyReset } from "@/hooks/useSmartEngine";
 
+import { useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -14,10 +15,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { onboarded } = useAppStore();
   
-  if (!onboarded) {
-    if (typeof window !== "undefined") {
+  useEffect(() => {
+    if (!onboarded) {
       router.push("/onboarding");
     }
+  }, [onboarded, router]);
+
+  if (!onboarded) {
     return null;
   }
 
