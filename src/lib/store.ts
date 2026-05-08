@@ -60,6 +60,14 @@ interface AppState {
   setInsights: (insights: AIInsight[]) => void;
   markInsightRead: (id: string) => void;
 
+  // Super Admin
+  isSuperAdmin: boolean;
+  setIsSuperAdmin: (v: boolean) => void;
+  reportedBugs: { id: string; date: string; description: string; status: "open" | "resolved" }[];
+  addBug: (description: string) => void;
+  resolveBug: (id: string) => void;
+  clearBugs: () => void;
+
   // Rest Timer
   restTimerActive: boolean;
   restTimerDuration: number;
@@ -97,6 +105,13 @@ export const useAppStore = create<AppState>()(
       setOnboarded: (v) => set({ onboarded: v }),
       hasSeenWorkoutTutorial: false,
       setHasSeenWorkoutTutorial: (v) => set({ hasSeenWorkoutTutorial: v }),
+
+      isSuperAdmin: false,
+      setIsSuperAdmin: (v) => set({ isSuperAdmin: v }),
+      reportedBugs: [],
+      addBug: (desc) => set((s) => ({ reportedBugs: [{ id: Date.now().toString(), date: new Date().toISOString(), description: desc, status: "open" }, ...s.reportedBugs] })),
+      resolveBug: (id) => set((s) => ({ reportedBugs: s.reportedBugs.map((b) => b.id === id ? { ...b, status: "resolved" } : b) })),
+      clearBugs: () => set({ reportedBugs: [] }),
 
       activeWorkout: null,
       startWorkout: (id, name, exercises) =>

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Flame } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { useAppStore } from "@/lib/store";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -19,7 +20,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -28,6 +29,11 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
+      if (email.toLowerCase() === "gauravgoyal2112007@gmail.com") {
+        useAppStore.getState().setIsSuperAdmin(true);
+      } else {
+        useAppStore.getState().setIsSuperAdmin(false);
+      }
       router.push("/home");
       router.refresh();
     }

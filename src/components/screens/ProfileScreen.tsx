@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Target, Ruler, Settings, ChevronRight, LogOut, Award, Calendar, Flame, Edit3, Save, X, Download, Shield } from "lucide-react";
+import { User, Target, Ruler, Settings, ChevronRight, LogOut, Award, Calendar, Flame, Edit3, Save, X, Download, Shield, Bug, CheckCircle } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { calculateCalories, calculateMacros } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function ProfileScreen() {
-  const { user, setUser, streak, workoutLogs, meals, measurements, setOnboarded } = useAppStore();
+  const { user, setUser, streak, workoutLogs, meals, measurements, setOnboarded, isSuperAdmin, reportedBugs, resolveBug, clearBugs } = useAppStore();
   const [editMode, setEditMode] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -254,6 +254,41 @@ export default function ProfileScreen() {
           </div>
         ))}
       </div>
+
+      {/* Super Admin Dashboard */}
+      {isSuperAdmin && (
+        <div className="bg-surface rounded-2xl border border-neon-red/50 mb-4 overflow-hidden">
+          <div className="px-4 py-3 border-b border-border/30 bg-neon-red/5">
+            <h3 className="text-text-primary font-semibold text-sm flex items-center justify-between">
+              <span className="flex items-center gap-2"><Bug className="w-4 h-4 text-neon-red" /> Reported Bugs</span>
+              <button onClick={clearBugs} className="text-xs text-text-muted hover:text-neon-red">Clear All</button>
+            </h3>
+          </div>
+          <div className="max-h-64 overflow-y-auto">
+            {reportedBugs.length === 0 ? (
+              <div className="p-4 text-center text-text-muted text-sm">No bugs reported yet.</div>
+            ) : (
+              reportedBugs.map((bug) => (
+                <div key={bug.id} className="p-4 border-b border-border/20 last:border-0">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs text-text-muted">{new Date(bug.date).toLocaleString()}</span>
+                    {bug.status === "open" ? (
+                      <button onClick={() => resolveBug(bug.id)} className="flex items-center gap-1 text-[10px] bg-neon-red/10 text-neon-red px-2 py-1 rounded">
+                        <CheckCircle className="w-3 h-3" /> Mark Resolved
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-neon-green">Resolved</span>
+                    )}
+                  </div>
+                  <p className={`text-sm ${bug.status === "resolved" ? "text-text-muted line-through" : "text-text-primary"}`}>
+                    {bug.description}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Settings & Actions */}
       <div className="bg-surface rounded-2xl border border-border/50 mb-4 overflow-hidden">

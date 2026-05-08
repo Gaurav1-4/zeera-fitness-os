@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Dumbbell, PieChart, TrendingUp, User } from "lucide-react";
+import { Home, Dumbbell, PieChart, TrendingUp, User, Bug } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useOfflineSync } from "@/hooks/useOfflineSync";
@@ -13,8 +13,10 @@ import { useAppStore } from "@/lib/store";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { onboarded } = useAppStore();
+  const { onboarded, isSuperAdmin, addBug } = useAppStore();
   const [isHydrated, setIsHydrated] = useState(false);
+  const [bugText, setBugText] = useState("");
+  const [showBugModal, setShowBugModal] = useState(false);
   
   useEffect(() => {
     setIsHydrated(useAppStore.persist.hasHydrated());
@@ -66,6 +68,67 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      {/* Super Admin Bug Reporter */}
+      {isSuperAdmin && (
+        <>
+          <button
+            onClick={() => setShowBugModal(true)}
+            className="fixed bottom-24 right-6 w-12 h-12 bg-neon-red text-white rounded-full shadow-lg shadow-neon-red/20 flex items-center justify-center z-50 active:scale-95 transition-transform"
+          >
+            <Bug className="w-5 h-5" />
+          </button>
+          
+          <AnimatePresence>
+            {showBugModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="bg-surface rounded-2xl p-5 w-full max-w-sm border border-border/50"
+                >
+                  <h3 className="text-lg font-bold text-text-primary mb-3 flex items-center gap-2">
+                    <Bug className="w-4 h-4 text-neon-red" /> Report a Bug
+                  </h3>
+                  <textarea
+                    autoFocus
+                    value={bugText}
+                    onChange={(e) => setBugText(e.target.value)}
+                    placeholder="Describe the issue you found..."
+                    className="w-full h-32 bg-background border border-border/50 rounded-xl p-3 text-sm text-text-primary focus:outline-none focus:border-neon-red/50 resize-none mb-4"
+                  />
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowBugModal(false)}
+                      className="flex-1 py-2.5 rounded-xl bg-surface-lighter text-text-secondary text-sm font-semibold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (bugText.trim()) {
+                          addBug(bugText.trim());
+                          setBugText("");
+                          setShowBugModal(false);
+                        }
+                      }}
+                      className="flex-1 py-2.5 rounded-xl bg-neon-red text-white text-sm font-semibold shadow-lg shadow-neon-red/20"
+                    >
+                      Save Bug
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )}
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 w-full bg-surface/80 backdrop-blur-xl border-t border-border/50 pb-safe pt-2 px-6 z-50">
