@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Target, Ruler, Settings, ChevronRight, LogOut, Award, Calendar, Flame, Edit3, Save, X, Download, Shield } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { calculateCalories } from "@/lib/utils";
+import { calculateCalories, calculateMacros } from "@/lib/utils";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
@@ -22,6 +22,7 @@ export default function ProfileScreen() {
   const [editWeight, setEditWeight] = useState(String(user.weight));
   const [editGoal, setEditGoal] = useState(user.goal);
   const [editActivity, setEditActivity] = useState(user.activityLevel);
+  const [editDietType, setEditDietType] = useState(user.dietType);
 
   const stats = [
     { icon: Flame, label: "Streak", value: `${streak} days`, color: "text-neon-orange" },
@@ -34,9 +35,7 @@ export default function ProfileScreen() {
     const newHeight = parseFloat(editHeight) || user.height;
     const newAge = parseInt(editAge) || user.age;
     const cals = calculateCalories(newWeight, newHeight, newAge, user.gender, editActivity as any, editGoal as any);
-    const protein = Math.round(newWeight * 2);
-    const fats = Math.round(cals * 0.25 / 9);
-    const carbs = Math.round((cals - protein * 4 - fats * 9) / 4);
+    const { protein, carbs, fats } = calculateMacros(cals, newWeight, editDietType as any);
 
     setUser({
       name: editName || user.name,
@@ -45,6 +44,7 @@ export default function ProfileScreen() {
       weight: newWeight,
       goal: editGoal as any,
       activityLevel: editActivity as any,
+      dietType: editDietType as any,
       calorieTarget: cals,
       proteinTarget: protein,
       carbsTarget: carbs,
@@ -84,6 +84,7 @@ export default function ProfileScreen() {
     { label: "Age", value: editMode ? editAge : `${user.age} years`, key: "age", editable: true },
     { label: "Height", value: editMode ? editHeight : `${user.height} cm`, key: "height", editable: true },
     { label: "Weight", value: editMode ? editWeight : `${user.weight} kg`, key: "weight", editable: true },
+    { label: "Diet", value: user.dietType === "veg" ? "Vegetarian" : user.dietType === "veg+egg" ? "Veg + Egg" : "Non-Veg", key: "diet", editable: false },
     { label: "Goal", value: user.goal === "lose" ? "Fat Loss" : user.goal === "gain" ? "Muscle Gain" : "Maintenance", key: "goal", editable: false },
     { label: "Activity", value: user.activityLevel.replace("_", " "), key: "activityLevel", editable: false },
   ];
@@ -159,37 +160,75 @@ export default function ProfileScreen() {
           </h3>
         </div>
         {profileItems.map((item) => (
-          <div key={item.key} className="px-4 py-3 flex items-center justify-between border-b border-border/20 last:border-0">
-            <span className="text-text-secondary text-sm">{item.label}</span>
-            {editMode && item.editable ? (
-              <input
-                type="number"
-                inputMode="decimal"
-                value={item.value}
-                onChange={(e) => {
-                  if (item.key === "age") setEditAge(e.target.value);
-                  if (item.key === "height") setEditHeight(e.target.value);
-                  if (item.key === "weight") setEditWeight(e.target.value);
-                }}
-                className="w-24 py-1 px-2 bg-surface-lighter rounded-lg text-right text-text-primary text-sm font-medium focus:outline-none focus:ring-1 focus:ring-accent/50"
-              />
-            ) : (
-              <span className="text-text-primary text-sm font-medium capitalize">{typeof item.value === 'string' && !editMode ? item.value : `${item.value}`}</span>
+          <div key={item.key} className="px-4 py-3 border-b border-border/20 last:border-0">
+            <div className="flex items-center justify-between">
+              <span className="text-text-secondary text-sm">{item.label}</span>
+              {editMode && item.editable ? (
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={item.value}
+                  onChange={(e) => {
+                    if (item.key === "age") setEditAge(e.target.value);
+                    if (item.key === "height") setEditHeight(e.target.value);
+                    if (item.key === "weight") setEditWeight(e.target.value);
+                  }}
+                  className="w-20 py-1 px-2 bg-surface-lighter rounded-lg text-right text-text-primary text-sm font-medium focus:outline-none focus:ring-1 focus:ring-accent/50"
+                />
+              ) : (
+                <span className="text-text-primary text-sm font-medium capitalize">{typeof item.value === 'string' && !editMode ? item.value : `${item.value}`}</span>
+              )}
+            </div>
+            
+            {editMode && item.editable && (
+              <div className="mt-3">
+                <input 
+                  type="range" 
+                  min={item.key === "age" ? 14 : item.key === "height" ? 120 : 30}
+                  max={item.key === "age" ? 100 : item.key === "height" ? 250 : 200}
+                  value={item.value as string} 
+                  onChange={(e) => {
+                    if (item.key === "age") setEditAge(e.target.value);
+                    if (item.key === "height") setEditHeight(e.target.value);
+                    if (item.key === "weight") setEditWeight(e.target.value);
+                  }} 
+                  className="w-full accent-neon-green" 
+                />
+              </div>
             )}
           </div>
         ))}
 
-        {/* Goal Selector in Edit Mode */}
+        {/* Edit mode options for Diet and Goal */}
         {editMode && (
-          <div className="px-4 py-3 border-t border-border/20">
+          <div className="px-4 py-3 border-t border-border/20 bg-surface-light/30">
+            <span className="text-text-secondary text-xs block mb-2">Diet Preference</span>
+            <div className="flex gap-2 mb-4">
+              {[
+                { value: "veg", label: "Veg" },
+                { value: "veg+egg", label: "Veg+Egg" },
+                { value: "non-veg", label: "Non-Veg" }
+              ].map((d) => (
+                <button
+                  key={d.value}
+                  onClick={() => setEditDietType(d.value as any)}
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all border ${
+                    editDietType === d.value ? "border-neon-green/50 bg-neon-green/10 text-neon-green" : "border-border/50 bg-surface-lighter text-text-secondary"
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+
             <span className="text-text-secondary text-xs block mb-2">Goal</span>
             <div className="flex gap-2">
               {goalOptions.map((g) => (
                 <button
                   key={g.value}
                   onClick={() => setEditGoal(g.value as any)}
-                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
-                    editGoal === g.value ? "gradient-neon text-background" : "bg-surface-lighter text-text-secondary"
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all border ${
+                    editGoal === g.value ? "border-neon-blue/50 bg-neon-blue/10 text-neon-blue" : "border-border/50 bg-surface-lighter text-text-secondary"
                   }`}
                 >
                   {g.label}

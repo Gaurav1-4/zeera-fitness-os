@@ -7,10 +7,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useAIInsights, useStreakCalculator, useDailyReset } from "@/hooks/useSmartEngine";
 
+import { useAppStore } from "@/lib/store";
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { onboarded } = useAppStore();
   
+  if (!onboarded) {
+    if (typeof window !== "undefined") {
+      router.push("/onboarding");
+    }
+    return null;
+  }
+
   // Background engines
   useOfflineSync();
   useAIInsights();

@@ -147,6 +147,16 @@ export default function WorkoutScreen() {
                     </span>
                   </div>
 
+                  {selEx.imageUrl && (
+                    <div className="w-full h-48 mb-4 rounded-xl overflow-hidden bg-surface-lighter">
+                      <img 
+                        src={selEx.imageUrl} 
+                        alt={selEx.name} 
+                        className="w-full h-full object-cover opacity-80"
+                      />
+                    </div>
+                  )}
+
                   <div className="bg-surface-light rounded-xl p-4 mb-4">
                     <h3 className="text-sm font-semibold text-text-primary mb-2 flex items-center gap-2">
                       <BookOpen className="w-4 h-4 text-accent-light" /> Instructions

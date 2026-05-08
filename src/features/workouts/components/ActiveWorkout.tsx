@@ -218,6 +218,16 @@ export default function ActiveWorkoutScreen() {
               <p className="text-text-secondary text-sm capitalize mb-3">
                 {currentEx.exercise.muscle} • {currentEx.exercise.equipment}
               </p>
+              
+              {currentEx.exercise.imageUrl && (
+                <div className="w-full h-40 mb-4 rounded-xl overflow-hidden bg-surface-lighter">
+                  <img 
+                    src={currentEx.exercise.imageUrl} 
+                    alt={currentEx.exercise.name} 
+                    className="w-full h-full object-cover opacity-80"
+                  />
+                </div>
+              )}
               {currentEx.previousBest && (
                 <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-accent/10 rounded-lg">
                   <Trophy className="w-4 h-4 text-accent-light" />

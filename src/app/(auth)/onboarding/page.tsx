@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, ChevronRight, Dumbbell, Target, Scale, User } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { calculateCalories } from "@/lib/utils";
+import { calculateCalories, calculateMacros } from "@/lib/utils";
 
 import { useRouter } from "next/navigation";
 
@@ -12,6 +12,7 @@ const steps = [
   { id: "welcome", title: "Welcome to ZEERA", subtitle: "Your fitness operating system" },
   { id: "name", title: "What's your name?", subtitle: "Let's personalize your experience" },
   { id: "body", title: "Your Body Stats", subtitle: "We'll use this to calculate your targets" },
+  { id: "diet", title: "Diet Preference", subtitle: "We'll adjust your macro splits" },
   { id: "goal", title: "What's your goal?", subtitle: "This shapes your entire plan" },
   { id: "experience", title: "Gym Experience?", subtitle: "We'll adjust workout difficulty" },
   { id: "ready", title: "You're All Set!", subtitle: "Let's start your transformation" },
@@ -26,6 +27,7 @@ export default function OnboardingScreen() {
   const [height, setHeight] = useState(String(user.height));
   const [weight, setWeight] = useState(String(user.weight));
   const [gender, setGender] = useState<"male" | "female">(user.gender as any);
+  const [dietType, setDietType] = useState(user.dietType);
   const [goal, setGoal] = useState(user.goal);
   const [experience, setExperience] = useState(user.experience);
 
@@ -34,16 +36,17 @@ export default function OnboardingScreen() {
   };
 
   const finish = () => {
-    const cals = calculateCalories(parseFloat(weight), parseFloat(height), parseInt(age), gender, "moderate", goal as any);
-    const protein = Math.round(parseFloat(weight) * 2);
-    const fats = Math.round(cals * 0.25 / 9);
-    const carbs = Math.round((cals - protein * 4 - fats * 9) / 4);
+    const w = parseFloat(weight);
+    const cals = calculateCalories(w, parseFloat(height), parseInt(age), gender, "moderate", goal as any);
+    const { protein, carbs, fats } = calculateMacros(cals, w, dietType as any);
+
     setUser({
       name: name || "Athlete",
       age: parseInt(age),
       height: parseFloat(height),
-      weight: parseFloat(weight),
+      weight: w,
       gender: gender as any,
+      dietType: dietType as any,
       goal: goal as any,
       experience: experience as any,
       calorieTarget: cals,
@@ -133,14 +136,18 @@ export default function OnboardingScreen() {
                     >{g === "male" ? "♂ Male" : "♀ Female"}</button>
                   ))}
                 </div>
-                {[{ label: "Age", value: age, set: setAge, ph: "24", unit: "years" },
-                  { label: "Height", value: height, set: setHeight, ph: "175", unit: "cm" },
-                  { label: "Weight", value: weight, set: setWeight, ph: "75", unit: "kg" },
+                {[{ label: "Age", value: age, set: setAge, ph: "24", unit: "years", min: 14, max: 100 },
+                  { label: "Height", value: height, set: setHeight, ph: "175", unit: "cm", min: 120, max: 250 },
+                  { label: "Weight", value: weight, set: setWeight, ph: "75", unit: "kg", min: 30, max: 200 },
                 ].map((f) => (
-                  <div key={f.label}>
-                    <label className="text-text-secondary text-xs mb-1.5 block">{f.label} ({f.unit})</label>
+                  <div key={f.label} className="space-y-2">
+                    <div className="flex justify-between">
+                      <label className="text-text-secondary text-sm block">{f.label} ({f.unit})</label>
+                      <span className="text-neon-green font-bold">{f.value}</span>
+                    </div>
+                    <input type="range" min={f.min} max={f.max} value={f.value} onChange={(e) => f.set(e.target.value)} className="w-full accent-neon-green" />
                     <input type="number" inputMode="decimal" value={f.value} onChange={(e) => f.set(e.target.value)} placeholder={f.ph}
-                      className="w-full py-3 px-4 bg-surface rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent/50 border border-border/50"
+                      className="w-full py-2 px-4 bg-surface rounded-xl text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent/50 border border-border/50 hidden"
                     />
                   </div>
                 ))}
@@ -148,11 +155,34 @@ export default function OnboardingScreen() {
             </div>
           )}
 
-          {/* Goal */}
+          {/* Diet Type */}
           {step === 3 && (
             <div className="flex-1 flex flex-col justify-center">
-              <Target className="w-10 h-10 text-neon-green mb-4" />
+              <span className="w-10 h-10 text-neon-green mb-4 text-3xl">🥗</span>
               <h2 className="text-2xl font-display font-bold text-text-primary mb-2">{steps[3].title}</h2>
+              <p className="text-text-secondary text-sm mb-6">{steps[3].subtitle}</p>
+              <div className="space-y-3">
+                {[
+                  { value: "veg", label: "Vegetarian", desc: "Plant-based only" },
+                  { value: "veg+egg", label: "Vegetarian + Egg", desc: "Plant-based and eggs" },
+                  { value: "non-veg", label: "Non-Vegetarian", desc: "Includes meat and seafood" }
+                ].map((opt) => (
+                  <button key={opt.value} onClick={() => { setDietType(opt.value as any); next(); }}
+                    className={`w-full p-4 rounded-xl border text-left transition-all active:scale-[0.98] ${dietType === opt.value ? "border-neon-green/50 bg-neon-green/5" : "border-border/50 bg-surface"}`}
+                  >
+                    <p className="text-text-primary font-semibold">{opt.label}</p>
+                    <p className="text-text-secondary text-xs">{opt.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Goal */}
+          {step === 4 && (
+            <div className="flex-1 flex flex-col justify-center">
+              <Target className="w-10 h-10 text-neon-green mb-4" />
+              <h2 className="text-2xl font-display font-bold text-text-primary mb-2">{steps[4].title}</h2>
               <p className="text-text-secondary text-sm mb-6">{steps[3].subtitle}</p>
               <div className="space-y-3">
                 {goalOptions.map((opt) => (
@@ -173,11 +203,11 @@ export default function OnboardingScreen() {
           )}
 
           {/* Experience */}
-          {step === 4 && (
+          {step === 5 && (
             <div className="flex-1 flex flex-col justify-center">
               <Dumbbell className="w-10 h-10 text-neon-purple mb-4" />
-              <h2 className="text-2xl font-display font-bold text-text-primary mb-2">{steps[4].title}</h2>
-              <p className="text-text-secondary text-sm mb-6">{steps[4].subtitle}</p>
+              <h2 className="text-2xl font-display font-bold text-text-primary mb-2">{steps[5].title}</h2>
+              <p className="text-text-secondary text-sm mb-6">{steps[5].subtitle}</p>
               <div className="space-y-3">
                 {expOptions.map((opt) => (
                   <button key={opt.value} onClick={() => { setExperience(opt.value); next(); }}
@@ -197,7 +227,7 @@ export default function OnboardingScreen() {
           )}
 
           {/* Ready */}
-          {step === 5 && (
+          {step === 6 && (
             <div className="flex-1 flex flex-col items-center justify-center text-center">
               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
                 className="w-20 h-20 rounded-full gradient-neon flex items-center justify-center mb-6"

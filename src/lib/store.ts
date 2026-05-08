@@ -70,7 +70,7 @@ interface AppState {
 }
 
 const defaultUser: UserProfile = {
-  name: "Athlete",
+  name: "",
   age: 24,
   height: 175,
   weight: 75,
@@ -78,6 +78,7 @@ const defaultUser: UserProfile = {
   goal: "lose",
   activityLevel: "moderate",
   experience: "intermediate",
+  dietType: "veg",
   calorieTarget: 2200,
   proteinTarget: 150,
   carbsTarget: 220,

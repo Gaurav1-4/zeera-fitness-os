@@ -21,9 +21,9 @@ export interface Exercise {
   instructions: string[];
   commonMistakes: string[];
   safetyTips: string[];
+  imageUrl?: string;
   videoUrl?: string;
   gifUrl?: string;
-  imageUrl?: string;
 }
 
 export interface WorkoutSet {
@@ -147,6 +147,7 @@ export interface UserProfile {
   goal: "lose" | "maintain" | "gain";
   activityLevel: "sedentary" | "light" | "moderate" | "active" | "very_active";
   experience: "beginner" | "intermediate" | "advanced";
+  dietType: "veg" | "veg+egg" | "non-veg";
   calorieTarget: number;
   proteinTarget: number;
   carbsTarget: number;

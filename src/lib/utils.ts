@@ -56,3 +56,19 @@ export function calculateCalories(
       return Math.round(tdee);
   }
 }
+
+export function calculateMacros(
+  calories: number,
+  weight: number,
+  dietType: "veg" | "veg+egg" | "non-veg"
+) {
+  let proteinMultiplier = 2.0; // non-veg standard
+  if (dietType === "veg") proteinMultiplier = 1.6;
+  if (dietType === "veg+egg") proteinMultiplier = 1.8;
+
+  const protein = Math.round(weight * proteinMultiplier);
+  const fats = Math.round((calories * 0.25) / 9);
+  const carbs = Math.round((calories - protein * 4 - fats * 9) / 4);
+
+  return { protein, carbs, fats };
+}
