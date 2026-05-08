@@ -54,6 +54,13 @@ export default function OnboardingScreen() {
       carbsTarget: carbs,
       fatsTarget: fats,
     });
+    
+    // Create initial measurement
+    useAppStore.getState().addMeasurement({
+      date: new Date().toISOString().split("T")[0],
+      weight: w,
+    });
+
     setOnboarded(true);
     router.push("/home");
   };

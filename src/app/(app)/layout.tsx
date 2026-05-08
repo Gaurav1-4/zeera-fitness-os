@@ -13,14 +13,18 @@ import { useAppStore } from "@/lib/store";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { onboarded, isSuperAdmin, addBug } = useAppStore();
+  const { onboarded, isSuperAdmin, addBug, clearDemoData } = useAppStore();
   const [isHydrated, setIsHydrated] = useState(false);
   const [bugText, setBugText] = useState("");
   const [showBugModal, setShowBugModal] = useState(false);
   
   useEffect(() => {
     setIsHydrated(useAppStore.persist.hasHydrated());
-    const unsub = useAppStore.persist.onFinishHydration(() => setIsHydrated(true));
+    if (useAppStore.persist.hasHydrated()) clearDemoData();
+    const unsub = useAppStore.persist.onFinishHydration(() => {
+      clearDemoData();
+      setIsHydrated(true);
+    });
     return () => unsub();
   }, []);
 

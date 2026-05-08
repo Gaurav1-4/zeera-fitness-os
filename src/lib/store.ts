@@ -50,6 +50,7 @@ interface AppState {
   // Measurements
   measurements: BodyMeasurement[];
   addMeasurement: (m: BodyMeasurement) => void;
+  clearDemoData: () => void;
 
   // Stats
   streak: number;
@@ -168,25 +169,19 @@ export const useAppStore = create<AppState>()(
       waterIntake: 0,
       setWaterIntake: (n) => set({ waterIntake: n }),
 
-      measurements: [
-        { date: "2025-04-01", weight: 80, bodyFat: 22, waist: 36 },
-        { date: "2025-04-15", weight: 78.5, bodyFat: 21, waist: 35.5 },
-        { date: "2025-05-01", weight: 77, bodyFat: 20, waist: 35 },
-        { date: "2025-05-08", weight: 75, bodyFat: 18.5, waist: 34 },
-      ],
+      measurements: [],
       addMeasurement: (m) =>
         set((s) => ({ measurements: [...s.measurements, m] })),
+      clearDemoData: () => set((s) => ({
+        measurements: s.measurements.filter(m => !m.date.startsWith("2025-04") && !m.date.startsWith("2025-05-01")),
+        insights: s.insights.filter(i => !i.id.startsWith("i")),
+        streak: s.streak === 12 ? 0 : s.streak
+      })),
 
-      streak: 12,
+      streak: 0,
       setStreak: (n) => set({ streak: n }),
 
-      insights: [
-        { id: "i1", type: "nutrition", message: "Your protein intake has been below target for 3 days. Try adding a whey shake post-workout.", priority: "high", icon: "🥩", date: new Date().toISOString(), read: false },
-        { id: "i2", type: "workout", message: "Great job! Bench press strength up 5kg this month.", priority: "medium", icon: "💪", date: new Date().toISOString(), read: false },
-        { id: "i3", type: "streak", message: "You're on a 12-day streak! Keep going to hit your 2-week milestone.", priority: "low", icon: "🔥", date: new Date().toISOString(), read: false },
-        { id: "i4", type: "progress", message: "Weight trending down consistently. You've lost 5kg in 5 weeks!", priority: "medium", icon: "📉", date: new Date().toISOString(), read: true },
-        { id: "i5", type: "recovery", message: "You've trained 5 days in a row. Consider a rest day for recovery.", priority: "high", icon: "😴", date: new Date().toISOString(), read: false },
-      ],
+      insights: [],
       setInsights: (insights) => set({ insights }),
       markInsightRead: (id) =>
         set((s) => ({
