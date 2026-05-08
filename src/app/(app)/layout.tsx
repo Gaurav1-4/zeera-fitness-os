@@ -22,6 +22,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => unsub();
   }, []);
 
+  // Background engines
+  useOfflineSync();
+  useAIInsights();
+  useStreakCalculator();
+  useDailyReset();
+
   useEffect(() => {
     if (isHydrated && !onboarded) {
       router.push("/onboarding");
@@ -35,12 +41,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-
-  // Background engines
-  useOfflineSync();
-  useAIInsights();
-  useStreakCalculator();
-  useDailyReset();
 
   const tabs = [
     { id: "home", icon: Home, label: "Home", path: "/home" },
