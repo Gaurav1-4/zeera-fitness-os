@@ -18,6 +18,8 @@ interface AppState {
   setUser: (user: Partial<UserProfile>) => void;
   onboarded: boolean;
   setOnboarded: (v: boolean) => void;
+  hasSeenWorkoutTutorial: boolean;
+  setHasSeenWorkoutTutorial: (v: boolean) => void;
 
   // Active Workout
   activeWorkout: {
@@ -93,6 +95,8 @@ export const useAppStore = create<AppState>()(
       setUser: (u) => set((s) => ({ user: { ...s.user, ...u } })),
       onboarded: false,
       setOnboarded: (v) => set({ onboarded: v }),
+      hasSeenWorkoutTutorial: false,
+      setHasSeenWorkoutTutorial: (v) => set({ hasSeenWorkoutTutorial: v }),
 
       activeWorkout: null,
       startWorkout: (id, name, exercises) =>

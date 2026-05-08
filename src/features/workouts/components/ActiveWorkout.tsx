@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Timer, Check, ChevronLeft, ChevronRight, Trophy, Pause, Play } from "lucide-react";
+import { X, Timer, Check, ChevronLeft, ChevronRight, Trophy, Pause, Play, Info } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { formatDuration } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
 export default function ActiveWorkoutScreen() {
-  const { activeWorkout, endWorkout, updateSet, setCurrentExerciseIndex, addWorkoutLog, restTimerActive, restTimerDuration, startRestTimer, stopRestTimer } = useAppStore();
+  const { activeWorkout, endWorkout, updateSet, setCurrentExerciseIndex, addWorkoutLog, restTimerActive, restTimerDuration, startRestTimer, stopRestTimer, hasSeenWorkoutTutorial, setHasSeenWorkoutTutorial } = useAppStore();
   const router = useRouter();
   const [elapsed, setElapsed] = useState(0);
   const [restTime, setRestTime] = useState(0);
@@ -83,6 +83,46 @@ export default function ActiveWorkoutScreen() {
 
   return (
     <div className="min-h-dvh bg-background flex flex-col">
+      {/* Educational Tutorial Overlay */}
+      <AnimatePresence>
+        {!hasSeenWorkoutTutorial && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-sm flex flex-col justify-center p-6"
+          >
+            <div className="bg-surface rounded-2xl p-6 border border-border/50 max-w-sm mx-auto w-full">
+              <div className="w-12 h-12 rounded-full gradient-neon flex items-center justify-center mx-auto mb-4">
+                <Info className="w-6 h-6 text-background" />
+              </div>
+              <h2 className="text-xl font-display font-bold text-text-primary text-center mb-4">How to Track</h2>
+              
+              <div className="space-y-4 mb-6">
+                <div className="flex gap-3 items-start">
+                  <div className="w-8 h-8 rounded-lg bg-neon-green/10 text-neon-green flex items-center justify-center font-bold text-xs shrink-0">W</div>
+                  <p className="text-text-secondary text-sm"><strong className="text-text-primary">Set Type:</strong> Tap the set number to toggle between Normal (1, 2), Warmup (W), Drop set (D), and Failure (F).</p>
+                </div>
+                <div className="flex gap-3 items-start">
+                  <div className="w-8 h-8 rounded-lg bg-surface-lighter flex items-center justify-center shrink-0"><Check className="w-4 h-4 text-text-secondary" /></div>
+                  <p className="text-text-secondary text-sm"><strong className="text-text-primary">Complete Set:</strong> Tap the checkmark on the right to complete a set. This triggers the rest timer automatically.</p>
+                </div>
+                <div className="flex gap-3 items-start">
+                  <div className="w-8 h-8 rounded-lg bg-surface-lighter flex items-center justify-center shrink-0"><ChevronRight className="w-4 h-4 text-text-secondary" /></div>
+                  <p className="text-text-secondary text-sm"><strong className="text-text-primary">Navigation:</strong> Use the arrows below the progress bar to swipe between exercises.</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setHasSeenWorkoutTutorial(true)}
+                className="w-full py-3 rounded-xl gradient-neon text-background font-semibold text-sm active:scale-[0.98] transition-transform"
+              >
+                Got it, let's lift!
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Rest Timer Overlay */}
       <AnimatePresence>
         {restTimerActive && (
