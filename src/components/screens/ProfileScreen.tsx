@@ -35,7 +35,7 @@ export default function ProfileScreen() {
     const newHeight = parseFloat(editHeight) || user.height;
     const newAge = parseInt(editAge) || user.age;
     const cals = calculateCalories(newWeight, newHeight, newAge, user.gender, editActivity as any, editGoal as any);
-    const { protein, carbs, fats } = calculateMacros(cals, newWeight, editDietType as any);
+    const { protein, carbs, fats } = calculateMacros(cals, newWeight, editDietType as any, editGoal as any);
 
     setUser({
       name: editName || user.name,

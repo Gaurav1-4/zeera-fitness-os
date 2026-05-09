@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Timer, Check, ChevronLeft, ChevronRight, Trophy, HelpCircle, Pointer, Settings2, Zap } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { formatDuration } from "@/lib/utils";
+import { formatDuration, calculateWorkoutCaloriesBurned, calculateTotalVolume } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
 // Smart defaults based on exercise type
@@ -55,9 +55,9 @@ export default function ActiveWorkoutScreen() {
 
   const handleFinish = useCallback(() => {
     if (!activeWorkout) return;
-    const totalVolume = activeWorkout.exercises.reduce(
-      (acc: number, ex) => acc + ex.sets.reduce((s: number, set: any) => s + (set.completed ? set.weight * set.reps : 0), 0), 0
-    );
+    const totalVolume = calculateTotalVolume(activeWorkout.exercises, user.weight);
+    const totalSets = activeWorkout.exercises.reduce((a: number, e: any) => a + e.sets.filter((s: any) => s.completed).length, 0);
+    const caloriesBurned = calculateWorkoutCaloriesBurned(elapsed, user.weight, totalVolume, totalSets);
     addWorkoutLog({
       id: `wl-${Date.now()}`,
       workoutId: activeWorkout.id,
@@ -66,12 +66,12 @@ export default function ActiveWorkoutScreen() {
       duration: elapsed,
       exercises: activeWorkout.exercises,
       totalVolume,
-      caloriesBurned: Math.round(elapsed * 0.12),
+      caloriesBurned,
       completed: true,
     });
     endWorkout();
     router.push('/home');
-  }, [activeWorkout, elapsed, addWorkoutLog, endWorkout, router]);
+  }, [activeWorkout, elapsed, addWorkoutLog, endWorkout, router, user.weight]);
 
   if (!activeWorkout) return null;
 

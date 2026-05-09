@@ -38,7 +38,7 @@ export default function OnboardingScreen() {
   const finish = () => {
     const w = parseFloat(weight);
     const cals = calculateCalories(w, parseFloat(height), parseInt(age), gender, "moderate", goal as any);
-    const { protein, carbs, fats } = calculateMacros(cals, w, dietType as any);
+    const { protein, carbs, fats } = calculateMacros(cals, w, dietType as any, goal as any);
 
     setUser({
       name: name || "Athlete",

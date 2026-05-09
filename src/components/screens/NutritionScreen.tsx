@@ -39,10 +39,10 @@ export default function NutritionScreen() {
 
   const totals = todayMeals.reduce(
     (acc, m) => ({
-      calories: acc.calories + m.foodItem.calories * m.quantity,
-      protein: acc.protein + m.foodItem.protein * m.quantity,
-      carbs: acc.carbs + m.foodItem.carbs * m.quantity,
-      fats: acc.fats + m.foodItem.fats * m.quantity,
+      calories: acc.calories + Math.round(m.foodItem.calories * m.quantity),
+      protein: acc.protein + Math.round(m.foodItem.protein * m.quantity),
+      carbs: acc.carbs + Math.round(m.foodItem.carbs * m.quantity),
+      fats: acc.fats + Math.round(m.foodItem.fats * m.quantity),
     }),
     { calories: 0, protein: 0, carbs: 0, fats: 0 }
   );
