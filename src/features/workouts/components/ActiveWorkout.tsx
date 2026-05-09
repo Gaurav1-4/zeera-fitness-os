@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Timer, Check, ChevronLeft, ChevronRight, Trophy, Pause, Play, Info } from "lucide-react";
+import { X, Timer, Check, ChevronLeft, ChevronRight, Trophy, Pause, Play, Info, HelpCircle, Pointer } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { formatDuration } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -13,6 +13,7 @@ export default function ActiveWorkoutScreen() {
   const [elapsed, setElapsed] = useState(0);
   const [restTime, setRestTime] = useState(0);
   const [showFinish, setShowFinish] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => setElapsed((e) => e + 1), 1000);
@@ -85,18 +86,68 @@ export default function ActiveWorkoutScreen() {
     <div className="min-h-dvh bg-background flex flex-col">
       {/* Educational Tutorial Overlay */}
       <AnimatePresence>
-        {!hasSeenWorkoutTutorial && (
+        {(!hasSeenWorkoutTutorial || showTutorial) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-sm flex flex-col justify-center p-6"
           >
-            <div className="bg-surface rounded-2xl p-6 border border-border/50 max-w-sm mx-auto w-full">
-              <div className="w-12 h-12 rounded-full gradient-neon flex items-center justify-center mx-auto mb-4">
-                <Info className="w-6 h-6 text-background" />
+            <div className="bg-surface rounded-2xl p-6 border border-border/50 max-w-sm mx-auto w-full relative overflow-hidden">
+              <h2 className="text-xl font-display font-bold text-text-primary text-center mb-6">How to Track</h2>
+              
+              {/* Animation Box */}
+              <div className="bg-surface-lighter rounded-xl h-24 mb-6 relative flex items-center justify-center border border-border/50">
+                {/* Fake Row */}
+                <div className="flex w-full px-4 items-center gap-3">
+                  {/* Animated Set Type Button */}
+                  <motion.div 
+                    animate={{ backgroundColor: ["#1A1A24", "#1A1A24", "#30FF691a", "#1A1A24"] }}
+                    transition={{ duration: 4, repeat: Infinity, times: [0, 0.2, 0.4, 1] }}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm text-text-primary"
+                  >
+                    <motion.span
+                      animate={{ color: ["#fff", "#fff", "#30FF69", "#fff"], scale: [1, 1, 1.2, 1] }}
+                      transition={{ duration: 4, repeat: Infinity, times: [0, 0.2, 0.4, 1] }}
+                    >
+                      W
+                    </motion.span>
+                  </motion.div>
+                  
+                  {/* Fake Inputs */}
+                  <div className="flex-1 flex gap-2">
+                    <div className="flex-1 h-10 rounded-xl bg-surface/50 border border-border/30"></div>
+                    <div className="flex-1 h-10 rounded-xl bg-surface/50 border border-border/30"></div>
+                  </div>
+
+                  {/* Animated Check Button */}
+                  <motion.div
+                    animate={{ backgroundColor: ["#1A1A24", "#1A1A24", "#1A1A24", "#30FF691a"] }}
+                    transition={{ duration: 4, repeat: Infinity, times: [0, 0.6, 0.8, 1] }}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center border border-border/30"
+                  >
+                    <motion.div
+                      animate={{ color: ["#6B7280", "#6B7280", "#6B7280", "#30FF69"], scale: [1, 1, 1, 1.2] }}
+                      transition={{ duration: 4, repeat: Infinity, times: [0, 0.6, 0.8, 1] }}
+                    >
+                      <Check className="w-5 h-5" />
+                    </motion.div>
+                  </motion.div>
+                </div>
+
+                {/* Animated Pointer */}
+                <motion.div 
+                  className="absolute z-10 text-white drop-shadow-lg"
+                  animate={{ 
+                    x: [-60, -60, 60, 60, -60],
+                    y: [40, 0, 0, 0, 40],
+                    scale: [1, 0.8, 1, 0.8, 1]
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, times: [0, 0.2, 0.5, 0.8, 1], ease: "easeInOut" }}
+                >
+                  <Pointer className="w-6 h-6 fill-white" />
+                </motion.div>
               </div>
-              <h2 className="text-xl font-display font-bold text-text-primary text-center mb-4">How to Track</h2>
               
               <div className="space-y-4 mb-6">
                 <div className="flex gap-3 items-start">
@@ -114,7 +165,10 @@ export default function ActiveWorkoutScreen() {
               </div>
 
               <button
-                onClick={() => setHasSeenWorkoutTutorial(true)}
+                onClick={() => {
+                  setHasSeenWorkoutTutorial(true);
+                  setShowTutorial(false);
+                }}
                 className="w-full py-3 rounded-xl gradient-neon text-background font-semibold text-sm active:scale-[0.98] transition-transform"
               >
                 Got it, let's lift!
@@ -205,9 +259,14 @@ export default function ActiveWorkoutScreen() {
           <p className="text-text-primary font-semibold text-sm">{activeWorkout.name}</p>
           <p className="text-neon-green text-xs font-mono">{formatDuration(elapsed)}</p>
         </div>
-        <button onClick={() => setShowFinish(true)} className="px-4 py-2 rounded-lg gradient-neon text-background text-sm font-semibold">
-          Finish
-        </button>
+        <div className="flex gap-2 items-center">
+          <button onClick={() => setShowTutorial(true)} className="p-1.5 rounded-full bg-surface-lighter active:scale-95 transition-transform">
+            <HelpCircle className="w-5 h-5 text-neon-blue" />
+          </button>
+          <button onClick={() => setShowFinish(true)} className="px-4 py-2 rounded-lg gradient-neon text-background text-sm font-semibold">
+            Finish
+          </button>
+        </div>
       </div>
 
       {/* Progress Bar */}
