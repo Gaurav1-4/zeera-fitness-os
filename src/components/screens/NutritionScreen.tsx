@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, X, Leaf, Drumstick, Trash2, Minus, ChevronDown, Edit3 } from "lucide-react";
+import { Search, Plus, X, Leaf, Drumstick, Trash2, Minus, ChevronDown, Edit3, Bot } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { foods } from "@/lib/data/foods";
 import { MealType, FoodItem } from "@/lib/types";
 import ProgressRing from "@/components/ui/ProgressRing";
+import FoodBot from "@/components/FoodBot";
 
 const mealTypes: { label: string; value: MealType; icon: string }[] = [
   { label: "Breakfast", value: "breakfast", icon: "🌅" },
@@ -33,6 +34,7 @@ export default function NutritionScreen() {
   const [customProtein, setCustomProtein] = useState("");
   const [customCarbs, setCustomCarbs] = useState("");
   const [customFats, setCustomFats] = useState("");
+  const [showBot, setShowBot] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
   const todayMeals = meals.filter((m) => m.date === today);
@@ -97,12 +99,20 @@ export default function NutritionScreen() {
     <div className="px-4 pt-14 pb-4">
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-2xl font-display font-bold text-text-primary">Nutrition</h1>
-        <button
-          onClick={() => setShowAddFood(true)}
-          className="w-10 h-10 rounded-xl gradient-neon flex items-center justify-center active:scale-95 transition-transform"
-        >
-          <Plus className="w-5 h-5 text-background" />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowBot(true)}
+            className="w-10 h-10 rounded-xl bg-surface border border-neon-green/30 flex items-center justify-center active:scale-95 transition-transform"
+          >
+            <Bot className="w-5 h-5 text-neon-green" />
+          </button>
+          <button
+            onClick={() => setShowAddFood(true)}
+            className="w-10 h-10 rounded-xl gradient-neon flex items-center justify-center active:scale-95 transition-transform"
+          >
+            <Plus className="w-5 h-5 text-background" />
+          </button>
+        </div>
       </div>
 
       {/* Macro Overview */}
@@ -367,6 +377,11 @@ export default function NutritionScreen() {
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* Food Bot Overlay */}
+      <AnimatePresence>
+        {showBot && <FoodBot onClose={() => setShowBot(false)} />}
       </AnimatePresence>
     </div>
   );
