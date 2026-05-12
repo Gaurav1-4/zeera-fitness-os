@@ -101,39 +101,62 @@ enum Experience {
 
 model Exercise {
   id              String   @id @default(cuid())
+  slug            String   @unique
   name            String
-  primaryMuscle   String
-  secondaryMuscles String[]
+  bodyPart        String
+  targetMuscle    String
   equipment       String
-  difficulty      String
+  difficulty      String?
   instructions    String[]
+  tips            String[]
+  
+  // Additional fields from original schema
+  secondaryMuscles String[]
   breathing       String?
   commonMistakes  String[]
   safetyWarnings  String[]
   beginnerMods    String[]
   advancedVars    String[]
+  
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   deletedAt       DateTime?
 
   media           ExerciseMedia[]
+  instructionSteps ExerciseInstruction[]
   workoutExercises WorkoutExercise[]
   logExercises    WorkoutLogExercise[]
 
-  @@index([primaryMuscle])
+  @@index([targetMuscle])
+  @@index([bodyPart])
+  @@index([slug])
   @@index([name])
 }
 
 model ExerciseMedia {
-  id         String   @id @default(cuid())
-  exerciseId String
-  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
-  type       String   // video, gif, image
-  url        String
-  angle      String?  // front, side, back
-  quality    String?  // HD, SD
+  id           String   @id @default(cuid())
+  exerciseId   String
+  type         String
+  url          String
   thumbnailUrl String?
-  
+  source       String?
+  width        Int?
+  height       Int?
+  createdAt    DateTime @default(now())
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@index([exerciseId])
+}
+
+model ExerciseInstruction {
+  id          String   @id @default(cuid())
+  exerciseId  String
+  stepNumber  Int
+  instruction String
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
   @@index([exerciseId])
 }
 
