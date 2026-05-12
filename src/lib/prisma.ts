@@ -4,9 +4,15 @@ import { PrismaPg } from '@prisma/adapter-pg';
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString && process.env.NODE_ENV === 'production') {
+  console.warn('DATABASE_URL is missing in production environment!');
+}
+
 const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
-  max: 10, // Limit connections in dev/serverless
+  connectionString: connectionString || 'postgresql://dummy:dummy@localhost:5432/dummy',
+  max: 10,
   idleTimeoutMillis: 30000,
 });
 
