@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Clock, Dumbbell, Search, ChevronRight, BookOpen } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { workoutPlans } from "@/features/workouts/data/workouts";
