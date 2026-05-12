@@ -124,14 +124,11 @@ async function importExercises() {
 
         if (!existingMedia) {
           try {
-            // If the API returns gifUrl directly, use it. Otherwise use our proxy logic.
             const sourceGifUrl = item.gifUrl || `https://${process.env.EXERCISE_DB_HOST}/image?exerciseId=${item.id}&resolution=360`;
-            
             const mirroredAssets = await mirrorMediaToZeera(sourceGifUrl, item.id);
             
-            await prisma.exerciseMedia.upsert({
-              where: { id: existingMedia?.id || 'new-media' }, // Simplified for this script
-              create: {
+            await prisma.exerciseMedia.create({
+              data: {
                 exerciseId: exercise.id,
                 type: "video",
                 originalGifUrl: sourceGifUrl,
@@ -140,8 +137,20 @@ async function importExercises() {
                 thumbnailUrl: mirroredAssets.thumbnailUrl,
                 url: mirroredAssets.mp4Url, // Legacy support
                 sourceProvider: "ExerciseDB"
-              },
-              update: {
+              }
+            });
+            mirrored++;
+          } catch (err) {
+            console.error(`Media mirroring failed for ${item.name}, skipping media...`);
+          }
+        } else {
+          try {
+            const sourceGifUrl = item.gifUrl || `https://${process.env.EXERCISE_DB_HOST}/image?exerciseId=${item.id}&resolution=360`;
+            const mirroredAssets = await mirrorMediaToZeera(sourceGifUrl, item.id);
+            
+            await prisma.exerciseMedia.update({
+              where: { id: existingMedia.id },
+              data: {
                 optimizedMp4Url: mirroredAssets.mp4Url,
                 optimizedWebmUrl: mirroredAssets.webmUrl,
                 thumbnailUrl: mirroredAssets.thumbnailUrl,
@@ -150,7 +159,7 @@ async function importExercises() {
             });
             mirrored++;
           } catch (err) {
-            console.error(`Media mirroring failed for ${item.name}, skipping media...`);
+            console.error(`Media update failed for ${item.name}...`);
           }
         }
       }

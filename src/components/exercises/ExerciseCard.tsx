@@ -8,7 +8,15 @@ export interface ExerciseModel {
   targetMuscle: string;
   equipment: string;
   bodyPart: string;
-  media?: { url: string; type: string; thumbnailUrl?: string }[];
+  difficulty?: string;
+  mechanics?: string;
+  media?: { 
+    url: string; 
+    type: string; 
+    thumbnailUrl?: string;
+    optimizedMp4Url?: string;
+    optimizedWebmUrl?: string;
+  }[];
   instructions?: string[];
   tips?: string[];
 }

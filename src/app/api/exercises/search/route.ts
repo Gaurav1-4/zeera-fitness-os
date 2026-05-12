@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     const result = await searchExercises({
       query,
       bodyPart,
-      targetMuscle,
+      muscle: targetMuscle,
       equipment,
       limit,
       offset
