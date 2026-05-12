@@ -113,7 +113,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ 
       error: "Sync failed", 
       message: error.message,
-      stack: process.env.NODE_ENV === "development" ? error.stack : undefined
+      stack: error.stack
     }, { status: 500 });
   }
 }

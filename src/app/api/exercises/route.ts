@@ -25,8 +25,12 @@ export async function GET(request: Request) {
       total,
       hasMore: offset + limit < total
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch exercises:', error);
-    return NextResponse.json({ error: 'Failed to fetch exercises' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to fetch exercises',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    }, { status: 500 });
   }
 }
