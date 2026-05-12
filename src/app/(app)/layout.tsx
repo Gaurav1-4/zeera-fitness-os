@@ -33,6 +33,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useAIInsights();
   useStreakCalculator();
   useDailyReset();
+  
+  // Real-time Admin Validation
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { createClient } = await import("@/utils/supabase/client");
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const isAdmin = user.email?.toLowerCase() === "gauravgoyal2112007@gmail.com";
+        if (isAdmin !== isSuperAdmin) {
+          useAppStore.getState().setIsSuperAdmin(isAdmin);
+        }
+      } else {
+        if (isSuperAdmin) useAppStore.getState().setIsSuperAdmin(false);
+      }
+    };
+    
+    if (isHydrated) checkAdmin();
+  }, [isHydrated, isSuperAdmin]);
 
   useEffect(() => {
     if (isHydrated && !onboarded) {

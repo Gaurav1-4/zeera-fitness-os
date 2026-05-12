@@ -46,7 +46,7 @@ export default function WorkoutScreen() {
     async function fetchExercises() {
       setLoading(true);
       try {
-        const res = await fetch("/api/exercises?limit=100");
+        const res = await fetch("/api/exercises?limit=50");
         const data = await res.json();
         if (data.items) {
           setApiExercises(data.items);
@@ -70,7 +70,13 @@ export default function WorkoutScreen() {
         return {
           id: e.id,
           name: e.name,
-          muscle: (e.targetMuscle || e.bodyPart || "chest").toLowerCase() as MuscleGroup,
+          muscle: (() => {
+            const part = (e.bodyPart || "").toLowerCase();
+            if (part === "waist") return "abs";
+            if (part.includes("arms")) return "arms";
+            if (part.includes("legs")) return "legs";
+            return (part || "chest") as MuscleGroup;
+          })() as MuscleGroup,
           secondaryMuscles: e.secondaryMuscles || [],
           equipment: e.equipment || "Bodyweight",
           difficulty: (e.difficulty || "intermediate").toLowerCase() as any,

@@ -56,6 +56,10 @@ export default function ProfileScreen() {
   const handleSignOut = async () => {
     setSigningOut(true);
     const supabase = createClient();
+    
+    // Clear admin state on logout
+    useAppStore.getState().setIsSuperAdmin(false);
+    
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();
