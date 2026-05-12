@@ -259,10 +259,9 @@ export default function WorkoutScreen() {
                       )}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          )}
+            )}
           </AnimatePresence>
 
           {/* Search */}
