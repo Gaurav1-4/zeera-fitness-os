@@ -26,6 +26,7 @@ export async function uploadToSupabase(
   if (fileExt === 'mp4') contentType = 'video/mp4';
   if (fileExt === 'webm') contentType = 'video/webm';
   if (fileExt === 'webp') contentType = 'image/webp';
+  if (fileExt === 'jpg' || fileExt === 'jpeg') contentType = 'image/jpeg';
 
   const { data, error } = await supabase.storage
     .from(bucket)

@@ -36,7 +36,7 @@ export async function mirrorMediaToZeera(
     const [mp4Url, webmUrl, thumbnailUrl] = await Promise.all([
       uploadToSupabase(optimizedPaths.mp4Path, bucket, `mp4/${exerciseId}.mp4`),
       uploadToSupabase(optimizedPaths.webmPath, bucket, `webm/${exerciseId}.webm`),
-      uploadToSupabase(optimizedPaths.thumbnailPath, bucket, `thumbnails/${exerciseId}.webp`)
+      uploadToSupabase(optimizedPaths.thumbnailPath, bucket, `thumbnails/${exerciseId}.jpg`)
     ]);
 
     console.log(`[Pipeline] Uploaded all assets to Supabase Storage`);
