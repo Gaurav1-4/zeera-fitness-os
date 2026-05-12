@@ -96,7 +96,7 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({ exerci
                 </div>
               </div>
 
-              <div className="space-y-8">
+              <div className="space-y-8 pb-12">
                 {exercise.instructions && exercise.instructions.length > 0 && (
                   <section>
                     <h4 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
@@ -123,12 +123,12 @@ export const ExerciseDetailModal: React.FC<ExerciseDetailModalProps> = ({ exerci
                         <li key={index}>{tip}</li>
                       ))}
                     </ul>
-                  </div>
+                  </section>
                 )}
               </div>
             </div>
           </motion.div>
-        </React.Fragment>
+        </div>
       )}
     </AnimatePresence>
   );
