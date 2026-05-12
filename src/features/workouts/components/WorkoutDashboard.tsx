@@ -62,19 +62,25 @@ export default function WorkoutScreen() {
 
   // Merge API exercises with local fallback
   const allExercises = apiExercises.length > 0 
-    ? apiExercises.map(e => ({
-        id: e.id,
-        name: e.name,
-        muscle: (e.targetMuscle || e.bodyPart || "chest").toLowerCase() as MuscleGroup,
-        secondaryMuscles: e.secondaryMuscles || [],
-        equipment: e.equipment || "Bodyweight",
-        difficulty: (e.difficulty || "intermediate").toLowerCase() as any,
-        instructions: e.instructions || [],
-        commonMistakes: e.commonMistakes || [],
-        safetyTips: e.safetyWarnings || [],
-        imageUrl: e.media?.[0]?.thumbnailUrl || e.media?.[0]?.url,
-        videoUrl: e.media?.[0]?.optimizedMp4Url || e.media?.[0]?.optimizedWebmUrl,
-      }))
+    ? apiExercises.map(e => {
+        const videoMedia = e.media?.find((m: any) => m.type === 'video');
+        const gifMedia = e.media?.find((m: any) => m.type === 'gif');
+        const bestMedia = videoMedia || gifMedia || e.media?.[0];
+
+        return {
+          id: e.id,
+          name: e.name,
+          muscle: (e.targetMuscle || e.bodyPart || "chest").toLowerCase() as MuscleGroup,
+          secondaryMuscles: e.secondaryMuscles || [],
+          equipment: e.equipment || "Bodyweight",
+          difficulty: (e.difficulty || "intermediate").toLowerCase() as any,
+          instructions: e.instructions || [],
+          commonMistakes: e.commonMistakes || [],
+          safetyTips: e.safetyWarnings || [],
+          imageUrl: videoMedia?.thumbnailUrl || bestMedia?.thumbnailUrl || bestMedia?.url || e.media?.[0]?.url,
+          videoUrl: videoMedia?.optimizedMp4Url || videoMedia?.url,
+        };
+      })
     : exercises;
 
   const filteredExercises = allExercises.filter((e) => {
