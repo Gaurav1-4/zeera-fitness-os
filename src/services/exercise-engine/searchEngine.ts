@@ -2,38 +2,31 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export interface SearchOptions {
+export async function searchExercises(options: {
   query?: string;
   bodyPart?: string;
-  targetMuscle?: string;
+  muscle?: string;
   equipment?: string;
+  difficulty?: string;
   limit?: number;
   offset?: number;
-}
-
-export async function searchExercises(options: SearchOptions) {
-  const { query, bodyPart, targetMuscle, equipment, limit = 20, offset = 0 } = options;
+}) {
+  const { query, bodyPart, muscle, equipment, difficulty, limit = 20, offset = 0 } = options;
 
   const where: any = {};
 
   if (query) {
     where.OR = [
       { name: { contains: query, mode: 'insensitive' } },
-      { slug: { contains: query, mode: 'insensitive' } },
+      { targetMuscle: { contains: query, mode: 'insensitive' } },
+      { bodyPart: { contains: query, mode: 'insensitive' } },
     ];
   }
 
-  if (bodyPart) {
-    where.bodyPart = { equals: bodyPart, mode: 'insensitive' };
-  }
-
-  if (targetMuscle) {
-    where.targetMuscle = { equals: targetMuscle, mode: 'insensitive' };
-  }
-
-  if (equipment) {
-    where.equipment = { equals: equipment, mode: 'insensitive' };
-  }
+  if (bodyPart) where.bodyPart = bodyPart;
+  if (muscle) where.targetMuscle = muscle;
+  if (equipment) where.equipment = equipment;
+  if (difficulty) where.difficulty = difficulty;
 
   const [total, exercises] = await Promise.all([
     prisma.exercise.count({ where }),
@@ -44,9 +37,10 @@ export async function searchExercises(options: SearchOptions) {
       include: {
         media: true,
       },
-      orderBy: {
-        name: 'asc'
-      }
+      orderBy: [
+        { qualityScore: 'desc' },
+        { name: 'asc' },
+      ],
     })
   ]);
 

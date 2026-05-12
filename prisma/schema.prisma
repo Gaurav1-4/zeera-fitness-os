@@ -106,20 +106,34 @@ model Exercise {
   bodyPart        String
   targetMuscle    String
   equipment       String
-  difficulty      String?
+  difficulty      String?  // Beginner, Intermediate, Advanced
+  
+  // New Enrichment Fields
+  movementPattern String?  // Squat, Hinge, Push, Pull, Lunge, Core
+  mechanics       String?  // Compound, Isolation
+  forceType       String?  // Push, Pull, Static
+  exerciseType    String?  // Strength, Cardio, Stretching
+  injuryRisk      String?  // Low, Medium, High
+  
   instructions    String[]
   tips            String[]
   
-  // Additional fields from original schema
+  // Metadata & Source Tracking
+  sourceProvider  String   @default("ExerciseDB")
+  sourceId        String?  // Original ID from provider
+  isVerified      Boolean  @default(false)
+  qualityScore    Float    @default(0)
+  
   secondaryMuscles String[]
-  breathing       String?
   commonMistakes  String[]
   safetyWarnings  String[]
+  breathingTips   String?
   beginnerMods    String[]
   advancedVars    String[]
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  importedAt      DateTime @default(now())
   deletedAt       DateTime?
 
   media           ExerciseMedia[]
@@ -131,18 +145,30 @@ model Exercise {
   @@index([bodyPart])
   @@index([slug])
   @@index([name])
+  @@index([sourceId])
 }
 
 model ExerciseMedia {
-  id           String   @id @default(cuid())
-  exerciseId   String
-  type         String
-  url          String
-  thumbnailUrl String?
-  source       String?
-  width        Int?
-  height       Int?
-  createdAt    DateTime @default(now())
+  id              String   @id @default(cuid())
+  exerciseId      String
+  type            String   // video, image, gif
+  
+  // URLs for self-hosting
+  originalGifUrl  String?  // Backup link to source
+  optimizedMp4Url String?  // Main production format
+  optimizedWebmUrl String? // Fallback for some browsers
+  thumbnailUrl    String?  // Static preview
+  blurPlaceholder String?  // Base64 blurhash or tiny image
+  
+  url             String   // Legacy support for current code
+  
+  width           Int?
+  height          Int?
+  duration        Float?   // In seconds
+  
+  sourceProvider  String   @default("ExerciseDB")
+  createdAt       DateTime @default(now())
+  importedAt      DateTime @default(now())
 
   exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 
@@ -154,6 +180,7 @@ model ExerciseInstruction {
   exerciseId  String
   stepNumber  Int
   instruction String
+  type        String?  // setup, execution, safety, tip
 
   exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 

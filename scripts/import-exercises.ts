@@ -2,11 +2,15 @@ import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import axios from 'axios';
 import { generateExerciseSlug } from '../src/services/exercise-engine/slugGenerator';
+import { mirrorMediaToZeera } from '../src/services/media-pipeline/mediaPipeline';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
+
+const MIRROR_MEDIA = process.env.MIRROR_MEDIA === 'true';
 
 interface ExerciseDBItem {
   id: string;
@@ -14,9 +18,11 @@ interface ExerciseDBItem {
   bodyPart: string;
   target: string;
   equipment: string;
-  gifUrl: string;
+  gifUrl?: string;
   instructions: string[];
   secondaryMuscles: string[];
+  description?: string;
+  difficulty?: string;
 }
 
 async function fetchAllExercises(): Promise<ExerciseDBItem[]> {
@@ -24,89 +30,151 @@ async function fetchAllExercises(): Promise<ExerciseDBItem[]> {
   const apiHost = process.env.EXERCISE_DB_HOST || "exercisedb.p.rapidapi.com";
 
   if (!apiKey) {
-    throw new Error("EXERCISE_DB_API_KEY is missing from environment variables.");
+    throw new Error("EXERCISE_DB_API_KEY is missing.");
   }
 
-  console.log('Fetching exercises from ExerciseDB...');
-  // Limiting to 100 for now to avoid huge payload, but you can set limit=0 or higher
-  const response = await fetch(`https://${apiHost}/exercises?limit=1000`, {
-    method: 'GET',
+  console.log('Fetching all exercises from ExerciseDB...');
+  // Note: Most ExerciseDB versions use limit=1300 to get everything or require pagination
+  const response = await axios.get(`https://${apiHost}/exercises?limit=1500`, {
     headers: {
       'x-rapidapi-host': apiHost,
       'x-rapidapi-key': apiKey
     }
   });
 
-  if (!response.ok) {
-    throw new Error(`ExerciseDB API Error: ${response.statusText}`);
+  return response.data;
+}
+
+/**
+ * Enriches the basic ExerciseDB data with ZEERA specific metadata.
+ */
+function enrichData(item: ExerciseDBItem) {
+  const name = item.name.toLowerCase();
+  
+  // Basic heuristics for enrichment
+  let movementPattern = 'Other';
+  if (name.includes('press')) movementPattern = 'Push';
+  if (name.includes('row') || name.includes('pull')) movementPattern = 'Pull';
+  if (name.includes('squat')) movementPattern = 'Squat';
+  if (name.includes('deadlift') || name.includes('hinge')) movementPattern = 'Hinge';
+  if (name.includes('lunge')) movementPattern = 'Lunge';
+  if (name.includes('crunch') || name.includes('plank')) movementPattern = 'Core';
+
+  let mechanics = 'Isolation';
+  if (['squat', 'deadlift', 'bench press', 'overhead press', 'row'].some(k => name.includes(k))) {
+    mechanics = 'Compound';
   }
 
-  return response.json();
+  return {
+    movementPattern,
+    mechanics,
+    difficulty: item.difficulty || 'Beginner',
+    exerciseType: 'Strength',
+    injuryRisk: 'Low'
+  };
 }
 
 async function importExercises() {
   try {
     const exercises = await fetchAllExercises();
-    console.log(`Fetched ${exercises.length} exercises from API.`);
+    console.log(`Fetched ${exercises.length} exercises. Starting processing...`);
 
     let imported = 0;
-    let skipped = 0;
+    let mirrored = 0;
 
     for (const item of exercises) {
       const slug = generateExerciseSlug(item.name);
+      const enrichment = enrichData(item);
 
-      // Check if already exists by slug
-      const existing = await prisma.exercise.findUnique({
-        where: { slug }
-      });
+      console.log(`[${imported + 1}/${exercises.length}] Processing: ${item.name}`);
 
-      if (existing) {
-        skipped++;
-        continue;
-      }
-
-      // Upsert to ensure we don't duplicate
-      await prisma.exercise.upsert({
+      // 1. Create or Update Exercise
+      const exercise = await prisma.exercise.upsert({
         where: { slug },
-        update: {},
+        update: {
+          name: item.name,
+          bodyPart: item.bodyPart,
+          targetMuscle: item.target,
+          equipment: item.equipment,
+          instructions: item.instructions,
+          secondaryMuscles: item.secondaryMuscles,
+          ...enrichment,
+          sourceId: item.id,
+          updatedAt: new Date(),
+        },
         create: {
           slug,
           name: item.name,
           bodyPart: item.bodyPart,
           targetMuscle: item.target,
           equipment: item.equipment,
-          difficulty: "Beginner", // default value as ExerciseDB lacks this
-          instructions: item.instructions || [],
-          secondaryMuscles: item.secondaryMuscles || [],
-          tips: [],
-          
-          media: {
-            create: {
-              type: "gif",
-              url: item.gifUrl || `/api/exercises/media/${item.id}`,
-              source: "ExerciseDB",
-            }
-          },
-          instructionSteps: {
-            create: (item.instructions || []).map((inst, index) => ({
-              stepNumber: index + 1,
-              instruction: inst
-            }))
-          }
+          instructions: item.instructions,
+          secondaryMuscles: item.secondaryMuscles,
+          ...enrichment,
+          sourceId: item.id,
+          sourceProvider: "ExerciseDB",
         }
       });
-      imported++;
-      
-      if (imported % 100 === 0) {
-        console.log(`Imported ${imported} exercises...`);
+
+      // 2. Handle Media Mirroring
+      if (MIRROR_MEDIA) {
+        const existingMedia = await prisma.exerciseMedia.findFirst({
+          where: { exerciseId: exercise.id, optimizedMp4Url: { not: null } }
+        });
+
+        if (!existingMedia) {
+          try {
+            // If the API returns gifUrl directly, use it. Otherwise use our proxy logic.
+            const sourceGifUrl = item.gifUrl || `https://${process.env.EXERCISE_DB_HOST}/image?exerciseId=${item.id}&resolution=360`;
+            
+            const mirroredAssets = await mirrorMediaToZeera(sourceGifUrl, item.id);
+            
+            await prisma.exerciseMedia.upsert({
+              where: { id: existingMedia?.id || 'new-media' }, // Simplified for this script
+              create: {
+                exerciseId: exercise.id,
+                type: "video",
+                originalGifUrl: sourceGifUrl,
+                optimizedMp4Url: mirroredAssets.mp4Url,
+                optimizedWebmUrl: mirroredAssets.webmUrl,
+                thumbnailUrl: mirroredAssets.thumbnailUrl,
+                url: mirroredAssets.mp4Url, // Legacy support
+                sourceProvider: "ExerciseDB"
+              },
+              update: {
+                optimizedMp4Url: mirroredAssets.mp4Url,
+                optimizedWebmUrl: mirroredAssets.webmUrl,
+                thumbnailUrl: mirroredAssets.thumbnailUrl,
+                url: mirroredAssets.mp4Url
+              }
+            });
+            mirrored++;
+          } catch (err) {
+            console.error(`Media mirroring failed for ${item.name}, skipping media...`);
+          }
+        }
       }
+
+      // 3. Instruction Steps
+      await prisma.exerciseInstruction.deleteMany({ where: { exerciseId: exercise.id } });
+      await prisma.exerciseInstruction.createMany({
+        data: item.instructions.map((inst, idx) => ({
+          exerciseId: exercise.id,
+          stepNumber: idx + 1,
+          instruction: inst,
+          type: "execution"
+        }))
+      });
+
+      imported++;
     }
 
-    console.log(`Import complete! Imported: ${imported}, Skipped: ${skipped}`);
+    console.log(`Import finished. Exercises: ${imported}, Mirrored: ${mirrored}`);
   } catch (error) {
-    console.error("Failed to import exercises:", error);
+    console.error("Import failed:", error);
   } finally {
     await prisma.$disconnect();
+    await pool.end();
   }
 }
 
