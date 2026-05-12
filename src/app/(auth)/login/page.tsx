@@ -34,6 +34,50 @@ export default function LoginPage() {
       } else {
         useAppStore.getState().setIsSuperAdmin(false);
       }
+      
+      // Fetch progress from backend
+      try {
+        const res = await fetch('/api/sync');
+        if (res.ok) {
+          const { profile, logs } = await res.json();
+          if (profile) {
+            useAppStore.getState().setUser({
+              name: profile.name,
+              age: profile.age,
+              height: profile.height,
+              weight: profile.weight,
+              gender: profile.gender?.toLowerCase(),
+              calorieTarget: profile.calorieTarget,
+              proteinTarget: profile.proteinTarget,
+              carbsTarget: profile.carbsTarget,
+              fatsTarget: profile.fatsTarget,
+            });
+            useAppStore.getState().setOnboarded(profile.onboarded);
+          }
+          if (logs && Array.isArray(logs) && logs.length > 0) {
+            // Add logs to store (deduplicate in real app, but good for restoring)
+            const currentLogs = useAppStore.getState().workoutLogs;
+            const newLogs = logs.filter(l => !currentLogs.some(cl => cl.id === l.id)).map(l => ({
+              id: l.id,
+              workoutId: 'imported',
+              workoutName: l.name,
+              date: l.date,
+              duration: l.duration,
+              totalVolume: l.totalVolume,
+              caloriesBurned: l.caloriesBurned,
+              completed: l.isCompleted,
+              exercises: [], // Basic restore
+              syncStatus: 'synced' as const
+            }));
+            if (newLogs.length > 0) {
+              useAppStore.setState({ workoutLogs: [...newLogs, ...currentLogs] });
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to restore progress:", err);
+      }
+
       router.push("/home");
       router.refresh();
     }

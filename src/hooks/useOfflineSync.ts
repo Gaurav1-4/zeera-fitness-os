@@ -19,44 +19,36 @@ export function useOfflineSync() {
     if (typeof window === "undefined" || !navigator.onLine) return;
     if (isSyncingRef.current) return;
 
-    const supabase = getSupabase();
-    if (!supabase) return;
-
     const pendingLogs = workoutLogs.filter(
       (log) => log.syncStatus === "pending" || !log.syncStatus
     );
-    if (pendingLogs.length === 0) return;
+    
+    // We can also sync the user profile to ensure it exists in DB
+    const { user: userProfile } = useAppStore.getState();
+
+    if (pendingLogs.length === 0 && !userProfile.name) return;
 
     isSyncingRef.current = true;
 
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) { isSyncingRef.current = false; return; }
+      const response = await fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: userProfile,
+          logs: pendingLogs,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to sync");
+      }
 
       for (const log of pendingLogs) {
-        try {
-          const { error } = await supabase.from("workout_logs").insert({
-            id: log.id,
-            user_id: userData.user.id,
-            workout_id: log.workoutId,
-            workout_name: log.workoutName,
-            date: log.date,
-            duration: log.duration,
-            total_volume: log.totalVolume,
-            calories_burned: log.caloriesBurned,
-            completed: log.completed,
-            exercises_json: log.exercises,
-          });
-
-          if (error) {
-            console.error("Sync failed for log", log.id, error);
-          } else {
-            updateWorkoutLogSyncStatus(log.id, "synced");
-          }
-        } catch (err) {
-          console.error("Sync error for log", log.id, err);
-        }
+        updateWorkoutLogSyncStatus(log.id, "synced");
       }
+    } catch (err) {
+      console.error("Sync error", err);
     } finally {
       isSyncingRef.current = false;
     }
