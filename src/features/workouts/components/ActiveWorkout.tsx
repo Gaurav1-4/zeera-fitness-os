@@ -253,7 +253,8 @@ export default function ActiveWorkoutScreen() {
         </button>
       </div>
 
-      {/* Current Exercis      <div className="flex-1 px-4 overflow-y-auto pb-6">
+      {/* Current Exercise */}
+      <div className="flex-1 px-4 overflow-y-auto pb-6">
         <WorkoutIntelligence />
         
         <AnimatePresence mode="wait">
