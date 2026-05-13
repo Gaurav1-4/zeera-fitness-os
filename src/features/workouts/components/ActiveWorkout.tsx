@@ -404,7 +404,6 @@ export default function ActiveWorkoutScreen() {
                 </>
               )}
             </div>
-          </motion.div>
 
             {/* Quick Rest Timer */}
             <div className="flex gap-2 mb-4">
