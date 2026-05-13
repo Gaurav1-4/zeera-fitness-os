@@ -20,6 +20,40 @@ const mealTypes: { label: string; value: MealType; icon: string }[] = [
   { label: "Post-Workout", value: "post-workout", icon: "💪" },
 ];
 
+function ProgressRing({ progress, size = 60, strokeWidth = 6, color = "#00f5a0", children, className = "" }: { progress: number; size?: number; strokeWidth?: number; color?: string; children?: React.ReactNode; className?: string }) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (Math.min(100, progress) / 100) * circumference;
+
+  return (
+    <div className={`relative flex items-center justify-center ${className}`} style={{ width: size, height: size }}>
+      <svg className="absolute transform -rotate-90" width={size} height={size}>
+        <circle
+          className="text-surface-lighter"
+          strokeWidth={strokeWidth}
+          stroke="currentColor"
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+        <circle
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          style={{ strokeDashoffset: offset, transition: "stroke-dashoffset 0.5s ease" }}
+          strokeLinecap="round"
+          stroke={color}
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+      </svg>
+      {children}
+    </div>
+  );
+}
+
 export default function NutritionScreen() {
   const { user, meals, addMeal, removeMeal } = useAppStore();
   const [showAddFood, setShowAddFood] = useState(false);
@@ -66,7 +100,7 @@ export default function NutritionScreen() {
       fats: f.fat,
       servingSize: "1",
       servingUnit: f.servingUnit || "serving",
-      category: "indian",
+      category: "indian" as const,
       isVeg: true
     }));
     return [...foods, ...convertedIndian];
@@ -113,7 +147,7 @@ export default function NutritionScreen() {
       fats: parseInt(customFats) || 0,
       servingSize: "1",
       servingUnit: "serving",
-      category: "western",
+      category: "western" as const,
       isVeg: true,
     };
     handleAddFood(food, 1);

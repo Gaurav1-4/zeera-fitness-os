@@ -24,7 +24,7 @@ export async function searchUSDA(query: string): Promise<FoodItem[]> {
         fats: parseFloat((getNutrient(1004) || 0).toFixed(1)),
         servingSize: "100",
         servingUnit: "g",
-        category: "western",
+        category: "western" as const,
         isVeg: true,
         brand: f.brandOwner
       };
