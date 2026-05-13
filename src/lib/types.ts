@@ -24,6 +24,9 @@ export interface Exercise {
   imageUrl?: string;
   videoUrl?: string;
   gifUrl?: string;
+  exerciseType?: string;
+  isCompound?: boolean;
+  bodyPart?: string;
 }
 
 export interface WorkoutSet {
