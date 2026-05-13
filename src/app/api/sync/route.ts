@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { profile, logs } = body;
+    const { profile, logs, meals, measurements } = body;
 
     // 1. Sync User Profile
     if (profile) {
@@ -66,43 +66,90 @@ export async function POST(req: Request) {
       }
     }
 
-    // 2. Sync Workout Logs
-    if (logs && Array.isArray(logs)) {
-      console.log(`[Sync] Syncing ${logs.length} logs for user ${user.id}`);
-      for (const log of logs) {
+    // 3. Sync Meals
+    if (meals && Array.isArray(meals)) {
+      console.log(`[Sync] Syncing ${meals.length} meals for user ${user.id}`);
+      for (const meal of meals) {
         try {
-          const logDate = new Date(log.date);
-          if (isNaN(logDate.getTime())) {
-            console.warn(`[Sync] Skipping log ${log.id} due to invalid date: ${log.date}`);
-            continue;
-          }
+          const mealDate = new Date(meal.date);
+          if (isNaN(mealDate.getTime())) continue;
 
-          await prisma.workoutLog.upsert({
-            where: { id: log.id },
+          // First, upsert the FoodItem if it doesn't exist (this is simplified)
+          // In a real app, we'd check against a master food library
+          const foodId = meal.foodItem.id;
+          await prisma.foodItem.upsert({
+            where: { id: foodId },
             create: {
-              id: log.id,
+              id: foodId,
+              name: meal.foodItem.name,
+              calories: meal.foodItem.calories,
+              protein: meal.foodItem.protein,
+              carbs: meal.foodItem.carbs,
+              fats: meal.foodItem.fats,
+              servingSize: 1,
+              servingUnit: meal.foodItem.servingUnit || "serving",
+              category: meal.foodItem.category || "generic",
+            },
+            update: {
+              name: meal.foodItem.name,
+              calories: meal.foodItem.calories,
+            }
+          });
+
+          await prisma.nutritionLog.upsert({
+            where: { id: meal.id },
+            create: {
+              id: meal.id,
               userId: user.id,
-              name: log.workoutName || "Workout",
-              date: logDate,
-              duration: Math.floor(Number(log.duration)) || 0,
-              totalVolume: Number(log.totalVolume) || 0,
-              caloriesBurned: Math.floor(Number(log.caloriesBurned)) || 0,
-              isCompleted: log.completed ?? true,
+              foodItemId: foodId,
+              quantity: meal.quantity,
+              mealType: meal.mealType.toUpperCase(),
+              date: mealDate,
               synced: true,
             },
             update: {
-              name: log.workoutName || "Workout",
-              date: logDate,
-              duration: Math.floor(Number(log.duration)) || 0,
-              totalVolume: Number(log.totalVolume) || 0,
-              caloriesBurned: Math.floor(Number(log.caloriesBurned)) || 0,
-              isCompleted: log.completed ?? true,
+              quantity: meal.quantity,
+              mealType: meal.mealType.toUpperCase(),
+              date: mealDate,
               synced: true,
             },
           });
         } catch (err: any) {
-          console.error(`[Sync] Log Upsert Error (ID: ${log.id}):`, err.message);
-          // Don't throw here, continue with other logs
+          console.error(`[Sync] Meal Upsert Error (ID: ${meal.id}):`, err.message);
+        }
+      }
+    }
+
+    // 4. Sync Body Measurements
+    if (measurements && Array.isArray(measurements)) {
+      console.log(`[Sync] Syncing ${measurements.length} measurements for user ${user.id}`);
+      for (const m of measurements) {
+        try {
+          const mDate = new Date(m.date);
+          if (isNaN(mDate.getTime())) continue;
+
+          await prisma.bodyMeasurement.upsert({
+            where: { id: m.id || `m-${m.date}-${user.id}` },
+            create: {
+              id: m.id || `m-${m.date}-${user.id}`,
+              userId: user.id,
+              date: mDate,
+              weight: Number(m.weight),
+              bodyFat: Number(m.bodyFat),
+              chest: Number(m.chest) || null,
+              waist: Number(m.waist) || null,
+              hips: Number(m.hips) || null,
+            },
+            update: {
+              weight: Number(m.weight),
+              bodyFat: Number(m.bodyFat),
+              chest: Number(m.chest) || null,
+              waist: Number(m.waist) || null,
+              hips: Number(m.hips) || null,
+            }
+          });
+        } catch (err: any) {
+          console.error(`[Sync] Measurement Upsert Error:`, err.message);
         }
       }
     }
@@ -148,7 +195,23 @@ export async function GET(req: Request) {
       orderBy: { date: 'desc' },
     });
 
-    return NextResponse.json({ profile: userProfile, logs: workoutLogs });
+    const nutritionLogs = await prisma.nutritionLog.findMany({
+      where: { userId: user.id },
+      include: { foodItem: true },
+      orderBy: { date: 'desc' },
+    });
+
+    const bodyMeasurements = await prisma.bodyMeasurement.findMany({
+      where: { userId: user.id },
+      orderBy: { date: 'desc' },
+    });
+
+    return NextResponse.json({ 
+      profile: userProfile, 
+      logs: workoutLogs, 
+      meals: nutritionLogs, 
+      measurements: bodyMeasurements 
+    });
   } catch (error: any) {
     console.error("Sync GET API Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

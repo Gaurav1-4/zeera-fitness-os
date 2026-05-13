@@ -3,7 +3,7 @@
 import { FoodItem } from "@/lib/types";
 
 export async function searchUSDA(query: string): Promise<FoodItem[]> {
-  const API_KEY = "hA53H14PzMgct7KkzYz5lkaI5HgK9GIVe1qjqWxq"; // Using key directly for client-side search or could move to server action
+  const API_KEY = process.env.NEXT_PUBLIC_USDA_API_KEY; 
   const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=5&api_key=${API_KEY}`;
 
   try {
