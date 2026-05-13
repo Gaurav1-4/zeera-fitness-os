@@ -7,6 +7,7 @@ import { useAppStore } from "@/lib/store";
 import { foods } from "@/lib/data/foods";
 import { FoodItem, MealType } from "@/lib/types";
 import indianFoods from "@/lib/indian-food-library.json";
+import { searchUSDA } from "@/lib/usda-api";
 
 // Extended knowledge base for foods NOT in the database
 const foodKnowledge: Record<string, { calories: number; protein: number; carbs: number; fats: number; serving: string }> = {
@@ -306,65 +307,74 @@ export default function FoodBot({ onClose }: { onClose: () => void }) {
     const foundItems: string[] = [];
     let unknownItem: { name: string; qty: number } | null = null;
 
-    for (const item of items) {
-      const result = findFood(item.name);
-      if (result.source === "db") {
-        const f = result.food as FoodItem;
-        totalCals += f.calories * item.qty;
-        totalP += f.protein * item.qty;
-        totalC += f.carbs * item.qty;
-        totalF += f.fats * item.qty;
-        foundItems.push(`${item.qty}× ${f.name}`);
-      } else if (result.source === "indian") {
-        totalCals += result.food.calories * item.qty;
-        totalP += result.food.protein * item.qty;
-        totalC += result.food.carbs * item.qty;
-        totalF += result.food.fat * item.qty;
-        foundItems.push(`${item.qty}× ${result.food.name}`);
-      } else if (result.source === "knowledge") {
-        totalCals += result.food.calories * item.qty;
-        totalP += result.food.protein * item.qty;
-        totalC += result.food.carbs * item.qty;
-        totalF += result.food.fats * item.qty;
-        foundItems.push(`${item.qty}× ${result.food.name}`);
-      } else {
-        unknownItem = item;
+    const runProcess = async () => {
+      for (const item of items) {
+        const result = findFood(item.name);
+        if (result.source === "db") {
+          const f = result.food as FoodItem;
+          totalCals += f.calories * item.qty;
+          totalP += f.protein * item.qty;
+          totalC += f.carbs * item.qty;
+          totalF += f.fats * item.qty;
+          foundItems.push(`${item.qty}× ${f.name}`);
+        } else if (result.source === "indian") {
+          totalCals += result.food.calories * item.qty;
+          totalP += result.food.protein * item.qty;
+          totalC += result.food.carbs * item.qty;
+          totalF += result.food.fat * item.qty;
+          foundItems.push(`${item.qty}× ${result.food.name}`);
+        } else if (result.source === "knowledge") {
+          totalCals += result.food.calories * item.qty;
+          totalP += result.food.protein * item.qty;
+          totalC += result.food.carbs * item.qty;
+          totalF += result.food.fats * item.qty;
+          foundItems.push(`${item.qty}× ${result.food.name}`);
+        } else {
+          // USDA Global Fallback
+          const usdaResults = await searchUSDA(item.name);
+          if (usdaResults.length > 0) {
+            const f = usdaResults[0];
+            totalCals += f.calories * item.qty;
+            totalP += f.protein * item.qty;
+            totalC += f.carbs * item.qty;
+            totalF += f.fats * item.qty;
+            foundItems.push(`${item.qty}× ${f.name}`);
+          } else {
+            unknownItem = item;
+          }
+        }
       }
-    }
 
-    // If we have unknown items, ask MCQ
-    if (unknownItem && foundItems.length === 0) {
-      setPendingFood({ name: unknownItem.name, calories: 0, protein: 0, carbs: 0, fats: 0, qty: unknownItem.qty });
-      setBotState("ask_category");
-      addMsg({
-        from: "bot",
-        text: `I don't have "${unknownItem.name}" in my database. What type of food is it?`,
-        options: foodCategories.map(c => ({ label: c.label, value: c.label })),
-      });
-      return;
-    }
+      // If we have unknown items, ask MCQ
+      if (unknownItem && foundItems.length === 0) {
+        setPendingFood({ name: unknownItem.name, calories: 0, protein: 0, carbs: 0, fats: 0, qty: unknownItem.qty });
+        setBotState("ask_category");
+        addMsg({
+          from: "bot",
+          text: `I don't have "${unknownItem.name}" in my database. What type of food is it?`,
+          options: foodCategories.map(c => ({ label: c.label, value: c.label })),
+        });
+        return;
+      }
 
-    // If all found, ask meal type and confirm
-    if (unknownItem) {
-      // Some found, some not — log what we can
-      addMsg({ from: "bot", text: `⚠️ I couldn't find "${unknownItem.name}" but I found the rest.` });
-    }
+      if (foundItems.length > 0) {
+        const name = foundItems.join(" + ");
+        setPendingFood({ name, calories: totalCals, protein: totalP, carbs: totalC, fats: totalF, qty: 1 });
+        setBotState("ask_meal_type");
+        addMsg({
+          from: "bot",
+          text: `Found it! Which meal is this for?`,
+          options: [
+            { label: "🌅 Breakfast", value: "breakfast" },
+            { label: "☀️ Lunch", value: "lunch" },
+            { label: "🌙 Dinner", value: "dinner" },
+            { label: "🍎 Snack", value: "snacks" },
+          ],
+        });
+      }
+    };
 
-    if (foundItems.length > 0) {
-      const name = foundItems.join(" + ");
-      setPendingFood({ name, calories: totalCals, protein: totalP, carbs: totalC, fats: totalF, qty: 1 });
-      setBotState("ask_meal_type");
-      addMsg({
-        from: "bot",
-        text: `Found it! Which meal is this for?`,
-        options: [
-          { label: "🌅 Breakfast", value: "breakfast" },
-          { label: "☀️ Lunch", value: "lunch" },
-          { label: "🌙 Dinner", value: "dinner" },
-          { label: "🍎 Snack", value: "snacks" },
-        ],
-      });
-    }
+    runProcess();
   };
 
   return (

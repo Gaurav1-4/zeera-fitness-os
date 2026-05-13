@@ -6,9 +6,10 @@ import { Search, Plus, X, Leaf, Drumstick, Trash2, Minus, ChevronDown, Edit3, Bo
 import { useAppStore } from "@/lib/store";
 import { foods } from "@/lib/data/foods";
 import { MealType, FoodItem } from "@/lib/types";
-import ProgressRing from "@/components/ui/ProgressRing";
 import FoodBot from "@/components/FoodBot";
 import indianFoods from "@/lib/indian-food-library.json";
+import { searchUSDA } from "@/lib/usda-api";
+import { Globe } from "lucide-react";
 
 const mealTypes: { label: string; value: MealType; icon: string }[] = [
   { label: "Breakfast", value: "breakfast", icon: "🌅" },
@@ -36,6 +37,8 @@ export default function NutritionScreen() {
   const [customCarbs, setCustomCarbs] = useState("");
   const [customFats, setCustomFats] = useState("");
   const [showBot, setShowBot] = useState(false);
+  const [globalFoods, setGlobalFoods] = useState<FoodItem[]>([]);
+  const [isSearchingGlobal, setIsSearchingGlobal] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
   const todayMeals = meals.filter((m) => m.date === today);
@@ -69,11 +72,22 @@ export default function NutritionScreen() {
     return [...foods, ...convertedIndian];
   }, []);
 
-  const filteredFoods = allAvailableFoods.filter((f) => {
-    const matchSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchFilter = foodFilter === "all" || f.category === foodFilter;
-    return matchSearch && matchFilter;
-  });
+  const filteredFoods = useMemo(() => {
+    const local = allAvailableFoods.filter((f) => {
+      const matchSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchFilter = foodFilter === "all" || f.category === foodFilter;
+      return matchSearch && matchFilter;
+    });
+    return [...local, ...globalFoods];
+  }, [allAvailableFoods, searchQuery, foodFilter, globalFoods]);
+
+  const handleSearchGlobal = async () => {
+    if (!searchQuery) return;
+    setIsSearchingGlobal(true);
+    const results = await searchUSDA(searchQuery);
+    setGlobalFoods(results);
+    setIsSearchingGlobal(false);
+  };
 
   const handleAddFood = (food: FoodItem, qty: number = 1) => {
     addMeal({
@@ -382,12 +396,36 @@ export default function NutritionScreen() {
                     </div>
                   </button>
                 ))}
-                {filteredFoods.length === 0 && (
+                {filteredFoods.length === 0 && !isSearchingGlobal && (
                   <div className="py-8 text-center">
-                    <p className="text-text-secondary text-sm mb-1">No foods found</p>
-                    <button onClick={() => setShowCustomFood(true)} className="text-neon-blue text-sm font-medium">
-                      Add custom food →
-                    </button>
+                    <p className="text-text-secondary text-sm mb-1">No local foods found</p>
+                    <div className="space-y-3">
+                      <button 
+                        onClick={handleSearchGlobal}
+                        className="w-full py-3 rounded-xl bg-neon-blue/10 text-neon-blue text-sm font-bold flex items-center justify-center gap-2"
+                      >
+                        <Globe className="w-4 h-4" /> Search Global Database
+                      </button>
+                      <button onClick={() => setShowCustomFood(true)} className="text-neon-blue text-xs font-medium">
+                        Add custom food manually →
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {searchQuery && filteredFoods.length > 0 && globalFoods.length === 0 && (
+                  <button 
+                    onClick={handleSearchGlobal}
+                    className="w-full py-3 mt-4 rounded-xl border border-dashed border-border/50 text-text-muted text-xs font-bold flex items-center justify-center gap-2"
+                  >
+                    <Globe className="w-3 h-3" /> Still can't find it? Search Global Database
+                  </button>
+                )}
+
+                {isSearchingGlobal && (
+                  <div className="py-8 text-center">
+                    <div className="w-6 h-6 border-2 border-neon-blue border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    <p className="text-xs text-text-muted">Querying USDA Servers...</p>
                   </div>
                 )}
               </div>
