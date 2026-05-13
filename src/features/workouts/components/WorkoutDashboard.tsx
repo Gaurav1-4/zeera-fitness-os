@@ -108,13 +108,6 @@ export default function WorkoutScreen() {
     <div className="px-4 pt-14 pb-4">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-display font-bold text-text-primary">Workouts</h1>
-        <button 
-          onClick={() => setShowAiGenerator(true)}
-          className="flex items-center gap-2 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue px-4 py-2 rounded-xl text-xs font-bold active:scale-[0.98] transition-transform"
-        >
-          <Zap className="w-3.5 h-3.5 fill-neon-blue" />
-          AI Plan
-        </button>
       </div>
 
       {/* View Toggle */}

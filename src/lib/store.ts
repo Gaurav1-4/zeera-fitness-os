@@ -118,17 +118,22 @@ export const useAppStore = create<AppState>()(
       startWorkout: (id, name, exercises) =>
         set((s) => {
           let adjustedExercises = [...exercises];
-          const today = new Date().getDay(); // 1 = Monday
           const isFatLoss = s.user.goal === "lose";
 
-          // Monday Cardio Rule: Inject cardio warmup if it's Monday and goal is Fat Loss
-          if (today === 1 && isFatLoss && !adjustedExercises.some(e => e.exercise?.name?.toLowerCase().includes("treadmill") || e.exercise?.name?.toLowerCase().includes("bike"))) {
-            // Find a cardio exercise ID (we'll use a standard placeholder or search logic)
+          if (isFatLoss && !adjustedExercises.some(e => e.exercise?.name?.toLowerCase().includes("treadmill") || e.exercise?.name?.toLowerCase().includes("bike"))) {
+            // MET for moderate treadmill (6kph) is roughly 5.0
+            // Target burn for a session is approx 200-300 kcal for fat loss
+            const weight = s.user.weight || 75;
+            const targetBurn = 250; // Dynamic target
+            
+            // Minutes = (Calories / (MET * Weight)) * 60
+            const recommendedMinutes = Math.ceil((targetBurn / (5.0 * weight)) * 60);
+
             const cardioExercise = {
-              id: "cardio-warmup-auto",
-              name: "Treadmill (Targeted Burn)",
+              id: "cardio-daily-auto",
+              name: `Daily Burn Cardio (${recommendedMinutes}m)`,
               sets: [{ reps: 1, weight: 0, completed: false }],
-              notes: "Goal-based Monday Cardio Injection",
+              notes: `Goal: Burn ~${targetBurn} kcal. Suggested: ${recommendedMinutes} mins at 6.0 KPH.`,
               exercise: {
                 name: "Treadmill",
                 muscle: "full body",
