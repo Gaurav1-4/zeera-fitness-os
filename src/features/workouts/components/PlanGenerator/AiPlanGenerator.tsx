@@ -19,6 +19,11 @@ import {
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { 
+  calculateTDEE, 
+  calculateDailyTarget, 
+  FitnessGoal 
+} from "@/lib/fitness-logic";
 
 interface Exercise {
   id: string;
@@ -35,11 +40,40 @@ export default function AiPlanGenerator({ onBack }: { onBack: () => void }) {
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
   const [selectedExerciseIds, setSelectedExerciseIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [goal, setGoal] = useState(user.goal === "lose" ? "Fat Loss" : "Muscle Gain");
+  const [goal, setGoal] = useState<FitnessGoal>(
+    user.goal === "lose" ? "LOSE_FAT" : 
+    user.goal === "build" ? "BUILD_MUSCLE" : 
+    user.goal === "strength" ? "GAIN_STRENGTH" : "MAINTAIN"
+  );
   const [cardioType, setCardioType] = useState("Treadmill");
-  const [calorieTarget, setCalorieTarget] = useState(300);
+  
+  // Calculate Initial Target from Profile
+  const initialTarget = calculateDailyTarget({
+    weight: user.weight || 75,
+    height: user.height || 175,
+    age: user.age || 25,
+    gender: (user.gender as any).toUpperCase(),
+    activityLevel: (user.activityLevel as any).toUpperCase(),
+    goal: goal
+  });
+
+  const [calorieTarget, setCalorieTarget] = useState(Math.round(initialTarget * 0.15)); // Target 15% of TDEE in workout
   const [strengthTarget, setStrengthTarget] = useState("Balanced");
   const [generatedPlan, setGeneratedPlan] = useState<any>(null);
+
+  // Re-calculate when goal changes
+  useEffect(() => {
+    const newTarget = calculateDailyTarget({
+      weight: user.weight || 75,
+      height: user.height || 175,
+      age: user.age || 25,
+      gender: (user.gender as any).toUpperCase(),
+      activityLevel: (user.activityLevel as any).toUpperCase(),
+      goal: goal
+    });
+    // For workout burn, we usually target 15-20% of total daily burn
+    setCalorieTarget(Math.round(newTarget * 0.15));
+  }, [goal, user]);
 
   useEffect(() => {
     async function fetchExercises() {
@@ -123,18 +157,23 @@ export default function AiPlanGenerator({ onBack }: { onBack: () => void }) {
               <p className="text-text-secondary text-sm mb-6">Zeera AI will calculate optimal volume based on your target.</p>
               
               <div className="grid grid-cols-2 gap-3">
-                {["Fat Loss", "Muscle Gain", "Endurance", "Pure Strength"].map(g => (
+                {[
+                  { id: "LOSE_FAT", label: "Fat Loss", color: "text-neon-orange" },
+                  { id: "BUILD_MUSCLE", label: "Muscle Gain", color: "text-neon-blue" },
+                  { id: "GAIN_STRENGTH", label: "Pure Strength", color: "text-neon-green" },
+                  { id: "MAINTAIN", label: "Maintenance", color: "text-text-primary" }
+                ].map(g => (
                   <button
-                    key={g}
-                    onClick={() => setGoal(g)}
+                    key={g.id}
+                    onClick={() => setGoal(g.id as FitnessGoal)}
                     className={`p-4 rounded-2xl border transition-all text-left flex flex-col gap-2 ${
-                      goal === g 
-                        ? "bg-neon-blue/10 border-neon-blue text-neon-blue shadow-lg shadow-neon-blue/5" 
+                      goal === g.id 
+                        ? "bg-surface border-neon-blue text-text-primary shadow-lg" 
                         : "bg-surface border-border/50 text-text-secondary"
                     }`}
                   >
-                    <Target className="w-5 h-5 opacity-70" />
-                    <span className="font-bold text-sm">{g}</span>
+                    <Target className={`w-5 h-5 ${goal === g.id ? g.color : "opacity-70"}`} />
+                    <span className="font-bold text-sm">{g.label}</span>
                   </button>
                 ))}
               </div>

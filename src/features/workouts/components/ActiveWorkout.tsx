@@ -6,6 +6,7 @@ import { X, Timer, Check, ChevronLeft, ChevronRight, Trophy, HelpCircle, Pointer
 import { useAppStore } from "@/lib/store";
 import { formatDuration, calculateWorkoutCaloriesBurned, calculateTotalVolume } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import WorkoutIntelligence from "./ActiveWorkout/WorkoutIntelligence";
 
 // Smart defaults based on exercise type
 const getSmartDefaults = (exerciseName: string, muscle: string, equipment: string) => {
@@ -254,6 +255,8 @@ export default function ActiveWorkoutScreen() {
 
       {/* Current Exercise */}
       <div className="flex-1 px-4 overflow-y-auto pb-6">
+        <WorkoutIntelligence />
+        
         <AnimatePresence mode="wait">
           <motion.div key={currentExerciseIndex} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} transition={{ duration: 0.2 }}>
             <div className="bg-surface rounded-2xl border border-border/50 p-4 mb-4">

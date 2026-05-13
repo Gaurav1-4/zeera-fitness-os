@@ -116,17 +116,42 @@ export const useAppStore = create<AppState>()(
 
       activeWorkout: null,
       startWorkout: (id, name, exercises) =>
-        set({
-          activeWorkout: {
-            id,
-            name,
-            exercises: exercises.map((e) => ({
-              ...e,
-              sets: e.sets.map((s) => ({ ...s, reps: 0, weight: 0, completed: false })),
-            })),
-            startTime: Date.now(),
-            currentExerciseIndex: 0,
-          },
+        set((s) => {
+          let adjustedExercises = [...exercises];
+          const today = new Date().getDay(); // 1 = Monday
+          const isFatLoss = s.user.goal === "lose";
+
+          // Monday Cardio Rule: Inject cardio warmup if it's Monday and goal is Fat Loss
+          if (today === 1 && isFatLoss && !adjustedExercises.some(e => e.name.toLowerCase().includes("treadmill") || e.name.toLowerCase().includes("bike"))) {
+            // Find a cardio exercise ID (we'll use a standard placeholder or search logic)
+            const cardioExercise = {
+              id: "cardio-warmup-auto",
+              name: "Treadmill (Targeted Burn)",
+              sets: [{ reps: 1, weight: 0, completed: false }],
+              notes: "Goal-based Monday Cardio Injection",
+              exercise: {
+                name: "Treadmill",
+                muscle: "full body",
+                equipment: "Treadmill",
+                exerciseType: "Cardio",
+                isCompound: true
+              }
+            };
+            adjustedExercises = [cardioExercise as any, ...adjustedExercises];
+          }
+
+          return {
+            activeWorkout: {
+              id,
+              name,
+              exercises: adjustedExercises.map((e) => ({
+                ...e,
+                sets: e.sets.map((s) => ({ ...s, reps: s.reps || 0, weight: s.weight || 0, completed: false })),
+              })),
+              startTime: Date.now(),
+              currentExerciseIndex: 0,
+            },
+          };
         }),
       endWorkout: () => set({ activeWorkout: null }),
       setCurrentExerciseIndex: (i) =>
