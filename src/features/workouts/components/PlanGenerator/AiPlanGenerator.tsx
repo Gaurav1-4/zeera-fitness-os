@@ -42,8 +42,7 @@ export default function AiPlanGenerator({ onBack }: { onBack: () => void }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [goal, setGoal] = useState<FitnessGoal>(
     user.goal === "lose" ? "LOSE_FAT" : 
-    user.goal === "build" ? "BUILD_MUSCLE" : 
-    user.goal === "strength" ? "GAIN_STRENGTH" : "MAINTAIN"
+    user.goal === "gain" ? "BUILD_MUSCLE" : "MAINTAIN"
   );
   const [cardioType, setCardioType] = useState("Treadmill");
   

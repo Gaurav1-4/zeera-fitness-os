@@ -48,7 +48,7 @@ export default function WorkoutIntelligence() {
     age: user.age || 25,
     gender: (user.gender as any).toUpperCase(),
     activityLevel: (user.activityLevel as any).toUpperCase(),
-    goal: (user.goal === "lose" ? "LOSE_FAT" : user.goal === "build" ? "BUILD_MUSCLE" : "MAINTAIN") as any
+    goal: (user.goal === "lose" ? "LOSE_FAT" : user.goal === "gain" ? "BUILD_MUSCLE" : "MAINTAIN") as any
   }), [user]);
 
   // Calculate Daily Calorie Intake
