@@ -116,50 +116,18 @@ export const useAppStore = create<AppState>()(
 
       activeWorkout: null,
       startWorkout: (id, name, exercises) =>
-        set((s) => {
-          let adjustedExercises = [...exercises];
-          const isFatLoss = s.user.goal === "lose";
-
-          if (isFatLoss && !adjustedExercises.some(e => e.exercise?.exerciseType === "Cardio")) {
-            const weight = s.user.weight || 75;
-            const targetBurn = 250; 
-            
-            // Split burn target: 60% Treadmill, 40% Cycling
-            const treadmillMinutes = Math.ceil(((targetBurn * 0.6) / (5.0 * weight)) * 60);
-            const cyclingMinutes = Math.ceil(((targetBurn * 0.4) / (6.0 * weight)) * 60);
-
-            const treadmillEx = {
-              id: "cardio-treadmill-auto",
-              name: `Warmup: Treadmill (${treadmillMinutes}m)`,
-              sets: [{ reps: 1, weight: 0, completed: false }],
-              notes: `Step 1: Burn ~${Math.round(targetBurn * 0.6)} kcal.`,
-              exercise: { name: "Treadmill", muscle: "full body", equipment: "Treadmill", exerciseType: "Cardio", isCompound: true }
-            };
-
-            const cyclingEx = {
-              id: "cardio-cycling-auto",
-              name: `Finisher: Cycling (${cyclingMinutes}m)`,
-              sets: [{ reps: 1, weight: 0, completed: false }],
-              notes: `Step 2: Burn ~${Math.round(targetBurn * 0.4)} kcal.`,
-              exercise: { name: "Cycling", muscle: "full body", equipment: "Stationary Bike", exerciseType: "Cardio", isCompound: true }
-            };
-
-            adjustedExercises = [treadmillEx as any, cyclingEx as any, ...adjustedExercises];
-          }
-
-          return {
-            activeWorkout: {
-              id,
-              name,
-              exercises: adjustedExercises.map((e) => ({
-                ...e,
-                sets: e.sets.map((s) => ({ ...s, reps: s.reps || 0, weight: s.weight || 0, completed: false })),
-              })),
-              startTime: Date.now(),
-              currentExerciseIndex: 0,
-            },
-          };
-        }),
+        set((s) => ({
+          activeWorkout: {
+            id,
+            name,
+            exercises: exercises.map((e) => ({
+              ...e,
+              sets: e.sets.map((s) => ({ ...s, reps: s.reps || 0, weight: s.weight || 0, completed: false })),
+            })),
+            startTime: Date.now(),
+            currentExerciseIndex: 0,
+          },
+        })),
       endWorkout: () => set({ activeWorkout: null }),
       setCurrentExerciseIndex: (i) =>
         set((s) =>
