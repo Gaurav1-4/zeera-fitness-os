@@ -12,7 +12,9 @@ import {
   Dumbbell, 
   Sparkles,
   ArrowRight,
-  Info
+  Info,
+  Search,
+  Filter
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { MuscleGroup } from "@/lib/types";
@@ -37,6 +39,8 @@ export default function SessionBuilder({
 }: SessionBuilderProps) {
   const [bucketList, setBucketList] = useState(initialExercises);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeMuscleFilter, setActiveMuscleFilter] = useState<MuscleGroup | "all">("all");
 
   // Volume Analysis Logic
   const volumeAnalysis = useMemo(() => {
@@ -73,6 +77,16 @@ export default function SessionBuilder({
       .filter(ex => gaps.includes(ex.muscle) && !bucketList.some(b => b.id === ex.id || b.exerciseId === ex.id))
       .slice(0, 3);
   }, [volumeAnalysis, allExercises, bucketList]);
+
+  // Library Filtering Logic
+  const filteredLibrary = useMemo(() => {
+    return allExercises.filter(ex => {
+      const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesMuscle = activeMuscleFilter === "all" || ex.muscle === activeMuscleFilter;
+      const notInBucket = !bucketList.some(b => b.exerciseId === ex.id || b.id === ex.id);
+      return matchesSearch && matchesMuscle && notInBucket;
+    }).slice(0, 20); // Performance cap
+  }, [allExercises, searchQuery, activeMuscleFilter, bucketList]);
 
   const handleAddExercise = (ex: any) => {
     const newEx = {
@@ -181,8 +195,69 @@ export default function SessionBuilder({
         </div>
       </div>
 
+      {/* Library Explorer (The "Manual Add" Section) */}
+      <div className="mb-6 space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-sm font-black text-text-primary uppercase tracking-widest">Library Explorer</h3>
+          <Filter className="w-4 h-4 text-text-muted" />
+        </div>
+
+        {/* Search & Muscle Filters */}
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+            <input 
+              type="text"
+              placeholder="Search library..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-surface border border-border/50 rounded-xl text-sm text-text-primary focus:border-neon-blue outline-none transition-colors"
+            />
+          </div>
+          
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {["all", ...targetMuscles].map(m => (
+              <button
+                key={m}
+                onClick={() => setActiveMuscleFilter(m as any)}
+                className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase whitespace-nowrap transition-all ${
+                  activeMuscleFilter === m ? "bg-neon-blue text-background" : "bg-surface text-text-muted border border-border/50"
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Filtered Exercise List */}
+        <div className="space-y-2">
+          {filteredLibrary.map(ex => (
+            <button
+              key={ex.id}
+              onClick={() => handleAddExercise(ex)}
+              className="w-full bg-surface/50 rounded-xl p-3 border border-border/30 flex items-center justify-between group active:scale-[0.98] transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-surface-lighter flex items-center justify-center text-text-muted group-hover:text-neon-blue">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-text-primary">{ex.name}</p>
+                  <p className="text-[9px] text-text-muted uppercase font-black">{ex.muscle} • {ex.equipment}</p>
+                </div>
+              </div>
+            </button>
+          ))}
+          
+          {filteredLibrary.length === 0 && searchQuery && (
+            <p className="text-center py-4 text-[10px] text-text-muted italic">No matching exercises found.</p>
+          )}
+        </div>
+      </div>
+
       {/* Suggestion Engine UI */}
-      {suggestions.length > 0 && (
+      {suggestions.length > 0 && !searchQuery && (
         <div className="mb-6 bg-neon-blue/5 rounded-3xl p-5 border border-neon-blue/20">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="w-4 h-4 text-neon-blue" />
