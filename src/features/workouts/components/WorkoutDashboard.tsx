@@ -31,11 +31,12 @@ const muscleColors: Record<string, string> = {
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import DailyCardioTab from "./DailyCardio/DailyCardioTab";
 
 export default function WorkoutScreen() {
   const { startWorkout } = useAppStore();
   const router = useRouter();
-  const [view, setView] = useState<"plans" | "library">("plans");
+  const [view, setView] = useState<"plans" | "cardio" | "library">("plans");
   const [searchQuery, setSearchQuery] = useState("");
   const [muscleFilter, setMuscleFilter] = useState<MuscleGroup | "all">("all");
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
@@ -106,15 +107,15 @@ export default function WorkoutScreen() {
 
       {/* View Toggle */}
       <div className="flex bg-surface rounded-xl p-1 mb-5">
-        {(["plans", "library"] as const).map((v) => (
+        {(["plans", "cardio", "library"] as const).map((v) => (
           <button
             key={v}
             onClick={() => setView(v)}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
-              view === v ? "bg-surface-lighter text-text-primary" : "text-text-secondary"
+            className={`flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+              view === v ? "bg-surface-lighter text-text-primary shadow-sm" : "text-text-muted"
             }`}
           >
-            {v === "plans" ? "Workout Plans" : "Exercise Library"}
+            {v === "plans" ? "Plans" : v === "cardio" ? "Daily Cardio" : "Library"}
           </button>
         ))}
       </div>
@@ -171,6 +172,8 @@ export default function WorkoutScreen() {
             </motion.div>
           ))}
         </div>
+      ) : view === "cardio" ? (
+        <DailyCardioTab />
       ) : (
         <>
           {/* Exercise Detail Modal */}
