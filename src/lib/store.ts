@@ -120,29 +120,31 @@ export const useAppStore = create<AppState>()(
           let adjustedExercises = [...exercises];
           const isFatLoss = s.user.goal === "lose";
 
-          if (isFatLoss && !adjustedExercises.some(e => e.exercise?.name?.toLowerCase().includes("treadmill") || e.exercise?.name?.toLowerCase().includes("bike"))) {
-            // MET for moderate treadmill (6kph) is roughly 5.0
-            // Target burn for a session is approx 200-300 kcal for fat loss
+          if (isFatLoss && !adjustedExercises.some(e => e.exercise?.exerciseType === "Cardio")) {
             const weight = s.user.weight || 75;
-            const targetBurn = 250; // Dynamic target
+            const targetBurn = 250; 
             
-            // Minutes = (Calories / (MET * Weight)) * 60
-            const recommendedMinutes = Math.ceil((targetBurn / (5.0 * weight)) * 60);
+            // Split burn target: 60% Treadmill, 40% Cycling
+            const treadmillMinutes = Math.ceil(((targetBurn * 0.6) / (5.0 * weight)) * 60);
+            const cyclingMinutes = Math.ceil(((targetBurn * 0.4) / (6.0 * weight)) * 60);
 
-            const cardioExercise = {
-              id: "cardio-daily-auto",
-              name: `Daily Burn Cardio (${recommendedMinutes}m)`,
+            const treadmillEx = {
+              id: "cardio-treadmill-auto",
+              name: `Warmup: Treadmill (${treadmillMinutes}m)`,
               sets: [{ reps: 1, weight: 0, completed: false }],
-              notes: `Goal: Burn ~${targetBurn} kcal. Suggested: ${recommendedMinutes} mins at 6.0 KPH.`,
-              exercise: {
-                name: "Treadmill",
-                muscle: "full body",
-                equipment: "Treadmill",
-                exerciseType: "Cardio",
-                isCompound: true
-              }
+              notes: `Step 1: Burn ~${Math.round(targetBurn * 0.6)} kcal.`,
+              exercise: { name: "Treadmill", muscle: "full body", equipment: "Treadmill", exerciseType: "Cardio", isCompound: true }
             };
-            adjustedExercises = [cardioExercise as any, ...adjustedExercises];
+
+            const cyclingEx = {
+              id: "cardio-cycling-auto",
+              name: `Finisher: Cycling (${cyclingMinutes}m)`,
+              sets: [{ reps: 1, weight: 0, completed: false }],
+              notes: `Step 2: Burn ~${Math.round(targetBurn * 0.4)} kcal.`,
+              exercise: { name: "Cycling", muscle: "full body", equipment: "Stationary Bike", exerciseType: "Cardio", isCompound: true }
+            };
+
+            adjustedExercises = [treadmillEx as any, cyclingEx as any, ...adjustedExercises];
           }
 
           return {
