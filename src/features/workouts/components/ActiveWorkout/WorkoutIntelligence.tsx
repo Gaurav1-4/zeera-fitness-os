@@ -85,22 +85,6 @@ export default function WorkoutIntelligence() {
       : calculateTreadmillBurn(user.weight, speed, incline, cardioTime)
   ) : 0;
 
-  // Smart Suggestion Logic
-  const suggestion = useMemo(() => {
-    if (roiProgress > 95) return null;
-    const muscle = currentEx?.exercise.muscle || "chest";
-    
-    const recommendations: Record<string, string> = {
-      chest: "Push-ups to failure or Cable Flys",
-      back: "Face Pulls or Straight-Arm Pulldowns",
-      legs: "Goblet Squats or Calf Raises",
-      shoulders: "Lateral Raises or Front Raises",
-      arms: "Hammer Curls or Tricep Dips"
-    };
-
-    return recommendations[muscle as string] || "one more compound set";
-  }, [roiProgress, currentEx]);
-
   return (
     <div className="space-y-3 mb-6">
       {/* Intelligence Dashboard */}
@@ -234,16 +218,11 @@ export default function WorkoutIntelligence() {
         <div className="space-y-1">
           <p className="text-[11px] text-text-secondary leading-tight">
             {roiProgress < 50 
-              ? "Your volume is currently at 'Warmup' levels. Focus on high-ROI compounds to hit your daily growth target."
+              ? "Your volume is currently at 'Warmup' levels. Focus on finishing your bucket list to hit your daily growth target."
               : roiProgress < 90 
-              ? `Great intensity! You're ${Math.ceil((targetROIVolume - completedVolumeROI) / 0.6)} sets away from completing your ROI.`
-              : "Daily ROI Achieved! Any further exercises are pure bonus volume."}
+              ? `Great intensity! You're ${Math.ceil((targetROIVolume - completedVolumeROI) / 0.6)} sets away from hitting your ROI target.`
+              : "Daily ROI Achieved! Your curated plan is officially crushed."}
           </p>
-          {suggestion && (
-            <p className="text-[10px] text-neon-blue font-bold">
-              AI Recommendation: Add {suggestion} to finish the muscle.
-            </p>
-          )}
         </div>
       </div>
     </div>
