@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Flame } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
@@ -22,6 +22,7 @@ export default function LoginPage() {
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
+    });
     if (error) setError(error.message);
   };
 
@@ -171,6 +172,8 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               className="w-full py-4 rounded-xl gradient-neon text-background font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-70 mt-2"
+            >
+              {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 

@@ -124,6 +124,8 @@ export default function SignupPage() {
               type="submit"
               disabled={loading}
               className="w-full py-4 rounded-xl bg-neon-blue text-background font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform disabled:opacity-70 mt-2"
+            >
+              {loading ? "Creating..." : "Sign Up"}
             </button>
           </form>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Plus, X, Leaf, Drumstick, Trash2, Minus, ChevronDown, Edit3, Bot } from "lucide-react";
 import { useAppStore } from "@/lib/store";
