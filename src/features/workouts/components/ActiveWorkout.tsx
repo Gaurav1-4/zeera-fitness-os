@@ -253,8 +253,7 @@ export default function ActiveWorkoutScreen() {
         </button>
       </div>
 
-      {/* Current Exercise */}
-      <div className="flex-1 px-4 overflow-y-auto pb-6">
+      {/* Current Exercis      <div className="flex-1 px-4 overflow-y-auto pb-6">
         <WorkoutIntelligence />
         
         <AnimatePresence mode="wait">
@@ -276,100 +275,135 @@ export default function ActiveWorkoutScreen() {
                 </div>
               )}
 
-              {/* Inline hint for beginners */}
-              {!allSetsComplete && nextSetIndex >= 0 && (
-                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="mb-3 px-3 py-2 bg-neon-blue/8 border border-neon-blue/20 rounded-xl flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-neon-blue shrink-0" />
-                  <p className="text-text-secondary text-xs">
-                    <strong className="text-text-primary">Set {nextSetIndex + 1}:</strong> Enter weight & reps, then tap ✓ to log. 
-                    {defaults.weight > 0 && <span className="text-neon-blue"> Suggested: {defaults.weight}kg × {defaults.reps}</span>}
-                  </p>
-                </motion.div>
-              )}
-
-              {allSetsComplete && currentExerciseIndex < exs.length - 1 && (
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-3 px-3 py-3 bg-neon-green/8 border border-neon-green/20 rounded-xl text-center">
-                  <p className="text-neon-green text-sm font-semibold mb-2">✅ All sets done!</p>
-                  <button onClick={handleAutoAdvance} className="px-6 py-2 rounded-xl gradient-neon text-background text-sm font-semibold active:scale-95 transition-transform">
-                    Next Exercise →
-                  </button>
-                </motion.div>
-              )}
-
-              {currentEx.previousBest && (
-                <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-accent/10 rounded-lg">
-                  <Trophy className="w-4 h-4 text-accent-light" />
-                  <span className="text-accent-light text-xs font-medium">Previous Best: {currentEx.previousBest.weight}kg × {currentEx.previousBest.reps} reps</span>
-                </div>
-              )}
-
-              {/* Advanced: Tempo and Notes (hidden by default) */}
-              {showAdvanced && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="overflow-hidden">
-                  <div className="grid grid-cols-2 gap-2 mb-4">
-                    <input type="text" placeholder="Tempo (e.g. 3-0-1-0)" value={currentEx.tempo || ""} onChange={(e) => useAppStore.getState().updateExercise(currentExerciseIndex, { tempo: e.target.value })} className="w-full py-2 px-3 bg-surface border border-border/50 rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50" />
-                    <input type="text" placeholder="Notes" value={currentEx.notes || ""} onChange={(e) => useAppStore.getState().updateExercise(currentExerciseIndex, { notes: e.target.value })} className="w-full py-2 px-3 bg-surface border border-border/50 rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50" />
+              {/* CARDIO UI: No Reps/KGs */}
+              {currentEx.exercise.exerciseType === "Cardio" || currentEx.exercise.muscle === "cardio" ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-neon-blue/5 border border-neon-blue/20 rounded-2xl text-center">
+                    <p className="text-xs text-text-muted uppercase tracking-widest font-black mb-1">Session Target</p>
+                    <p className="text-2xl font-black text-neon-blue">{currentEx.notes?.match(/\d+m/)?.[0] || "Target Time"}</p>
+                    <p className="text-[10px] text-text-secondary mt-1">{currentEx.notes}</p>
                   </div>
-                </motion.div>
-              )}
 
-              {/* Sets — Simplified */}
-              <div className="space-y-2">
-                <div className="grid grid-cols-[36px_1fr_1fr_44px] gap-2 px-1">
-                  <span className="text-text-muted text-[10px] text-center font-medium">SET</span>
-                  <span className="text-text-muted text-[10px] text-center font-medium">KG</span>
-                  <span className="text-text-muted text-[10px] text-center font-medium">REPS</span>
-                  <span className="text-text-muted text-[10px] text-center font-medium">DONE</span>
-                </div>
-                {currentEx.sets.map((set: any, i: number) => {
-                  const isCurrentSet = i === nextSetIndex;
-                  const isCompleted = set.completed;
-                  return (
-                    <motion.div
-                      key={set.id}
-                      className={`grid grid-cols-[36px_1fr_1fr_44px] gap-2 items-center p-2 rounded-xl transition-all ${
-                        isCompleted ? "bg-neon-green/5 opacity-60" : isCurrentSet ? "bg-neon-blue/5 ring-1 ring-neon-blue/30" : "bg-surface-light"
-                      }`}
-                      layout
+                  <div className="flex items-center gap-3 p-3 bg-surface-lighter rounded-xl">
+                    <Pointer className="w-4 h-4 text-neon-green shrink-0" />
+                    <p className="text-[11px] text-text-secondary leading-tight">
+                      Use the <span className="text-neon-green font-bold">Metabolic Lab</span> above to set your live speed and track your burn precision.
+                    </p>
+                  </div>
+
+                  {!currentEx.sets[0].completed ? (
+                    <button 
+                      onClick={() => handleCompleteSet(0, currentEx.sets[0])}
+                      className="w-full py-4 rounded-2xl gradient-neon text-background font-black text-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2 shadow-xl shadow-neon-green/20"
                     >
-                      {/* Simple set number */}
-                      <div className={`h-9 w-9 rounded-lg flex items-center justify-center text-sm font-bold ${isCompleted ? "text-neon-green bg-neon-green/10" : isCurrentSet ? "text-neon-blue bg-neon-blue/10" : "text-text-secondary bg-surface-lighter"}`}>
-                        {isCompleted ? <Check className="w-4 h-4" /> : i + 1}
-                      </div>
-                      
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        value={set.weight || ""}
-                        onChange={(e) => updateSet(currentExerciseIndex, i, { weight: parseFloat(e.target.value) || 0 })}
-                        placeholder={String(defaults.weight)}
-                        disabled={isCompleted}
-                        className={`w-full h-9 px-2 rounded-lg text-center text-sm font-bold focus:outline-none focus:ring-1 focus:ring-accent/50 ${isCompleted ? "bg-transparent text-text-muted" : "bg-surface-lighter text-text-primary"}`}
-                      />
-                      
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        value={set.reps || ""}
-                        onChange={(e) => updateSet(currentExerciseIndex, i, { reps: parseInt(e.target.value) || 0 })}
-                        placeholder={String(defaults.reps)}
-                        disabled={isCompleted}
-                        className={`w-full h-9 px-2 rounded-lg text-center text-sm font-bold focus:outline-none focus:ring-1 focus:ring-accent/50 ${isCompleted ? "bg-transparent text-text-muted" : "bg-surface-lighter text-text-primary"}`}
-                      />
+                      <Check className="w-5 h-5" /> Log Cardio Complete
+                    </button>
+                  ) : (
+                    <div className="w-full py-4 rounded-2xl bg-neon-green/10 border border-neon-green/30 text-neon-green font-black text-sm text-center flex items-center justify-center gap-2">
+                      <Trophy className="w-5 h-5" /> Cardio Logged
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  {/* EXISTING STRENGTH UI: Reps/KGs */}
+                  {/* Inline hint for beginners */}
+                  {!allSetsComplete && nextSetIndex >= 0 && (
+                    <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="mb-3 px-3 py-2 bg-neon-blue/8 border border-neon-blue/20 rounded-xl flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-neon-blue shrink-0" />
+                      <p className="text-text-secondary text-xs">
+                        <strong className="text-text-primary">Set {nextSetIndex + 1}:</strong> Enter weight & reps, then tap ✓ to log. 
+                        {defaults.weight > 0 && <span className="text-neon-blue"> Suggested: {defaults.weight}kg × {defaults.reps}</span>}
+                      </p>
+                    </motion.div>
+                  )}
 
-                      <button
-                        onClick={() => handleCompleteSet(i, set)}
-                        className={`w-10 h-9 rounded-lg flex items-center justify-center mx-auto transition-all active:scale-90 ${
-                          isCompleted ? "gradient-neon" : isCurrentSet ? "bg-neon-blue/15 border border-neon-blue/40" : "bg-surface-lighter border border-border"
-                        }`}
-                      >
-                        <Check className={`w-5 h-5 ${isCompleted ? "text-background" : isCurrentSet ? "text-neon-blue" : "text-text-muted"}`} />
+                  {allSetsComplete && currentExerciseIndex < exs.length - 1 && (
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mb-3 px-3 py-3 bg-neon-green/8 border border-neon-green/20 rounded-xl text-center">
+                      <p className="text-neon-green text-sm font-semibold mb-2">✅ All sets done!</p>
+                      <button onClick={handleAutoAdvance} className="px-6 py-2 rounded-xl gradient-neon text-background text-sm font-semibold active:scale-95 transition-transform">
+                        Next Exercise →
                       </button>
                     </motion.div>
-                  );
-                })}
-              </div>
+                  )}
+
+                  {currentEx.previousBest && (
+                    <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-accent/10 rounded-lg">
+                      <Trophy className="w-4 h-4 text-accent-light" />
+                      <span className="text-accent-light text-xs font-medium">Previous Best: {currentEx.previousBest.weight}kg × {currentEx.previousBest.reps} reps</span>
+                    </div>
+                  )}
+
+                  {/* Advanced: Tempo and Notes (hidden by default) */}
+                  {showAdvanced && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="overflow-hidden">
+                      <div className="grid grid-cols-2 gap-2 mb-4">
+                        <input type="text" placeholder="Tempo (e.g. 3-0-1-0)" value={currentEx.tempo || ""} onChange={(e) => useAppStore.getState().updateExercise(currentExerciseIndex, { tempo: e.target.value })} className="w-full py-2 px-3 bg-surface border border-border/50 rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50" />
+                        <input type="text" placeholder="Notes" value={currentEx.notes || ""} onChange={(e) => useAppStore.getState().updateExercise(currentExerciseIndex, { notes: e.target.value })} className="w-full py-2 px-3 bg-surface border border-border/50 rounded-lg text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent/50" />
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Sets — Simplified */}
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-[36px_1fr_1fr_44px] gap-2 px-1">
+                      <span className="text-text-muted text-[10px] text-center font-medium">SET</span>
+                      <span className="text-text-muted text-[10px] text-center font-medium">KG</span>
+                      <span className="text-text-muted text-[10px] text-center font-medium">REPS</span>
+                      <span className="text-text-muted text-[10px] text-center font-medium">DONE</span>
+                    </div>
+                    {currentEx.sets.map((set: any, i: number) => {
+                      const isCurrentSet = i === nextSetIndex;
+                      const isCompleted = set.completed;
+                      return (
+                        <motion.div
+                          key={set.id}
+                          className={`grid grid-cols-[36px_1fr_1fr_44px] gap-2 items-center p-2 rounded-xl transition-all ${
+                            isCompleted ? "bg-neon-green/5 opacity-60" : isCurrentSet ? "bg-neon-blue/5 ring-1 ring-neon-blue/30" : "bg-surface-light"
+                          }`}
+                          layout
+                        >
+                          {/* Simple set number */}
+                          <div className={`h-9 w-9 rounded-lg flex items-center justify-center text-sm font-bold ${isCompleted ? "text-neon-green bg-neon-green/10" : isCurrentSet ? "text-neon-blue bg-neon-blue/10" : "text-text-secondary bg-surface-lighter"}`}>
+                            {isCompleted ? <Check className="w-4 h-4" /> : i + 1}
+                          </div>
+                          
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            value={set.weight || ""}
+                            onChange={(e) => updateSet(currentExerciseIndex, i, { weight: parseFloat(e.target.value) || 0 })}
+                            placeholder={String(defaults.weight)}
+                            disabled={isCompleted}
+                            className={`w-full h-9 px-2 rounded-lg text-center text-sm font-bold focus:outline-none focus:ring-1 focus:ring-accent/50 ${isCompleted ? "bg-transparent text-text-muted" : "bg-surface-lighter text-text-primary"}`}
+                          />
+                          
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            value={set.reps || ""}
+                            onChange={(e) => updateSet(currentExerciseIndex, i, { reps: parseInt(e.target.value) || 0 })}
+                            placeholder={String(defaults.reps)}
+                            disabled={isCompleted}
+                            className={`w-full h-9 px-2 rounded-lg text-center text-sm font-bold focus:outline-none focus:ring-1 focus:ring-accent/50 ${isCompleted ? "bg-transparent text-text-muted" : "bg-surface-lighter text-text-primary"}`}
+                          />
+
+                          <button
+                            onClick={() => handleCompleteSet(i, set)}
+                            className={`w-10 h-9 rounded-lg flex items-center justify-center mx-auto transition-all active:scale-90 ${
+                              isCompleted ? "gradient-neon" : isCurrentSet ? "bg-neon-blue/15 border border-neon-blue/40" : "bg-surface-lighter border border-border"
+                            }`}
+                          >
+                            <Check className={`w-5 h-5 ${isCompleted ? "text-background" : isCurrentSet ? "text-neon-blue" : "text-text-muted"}`} />
+                          </button>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
+           </div>
 
             {/* Quick Rest Timer */}
             <div className="flex gap-2 mb-4">
