@@ -54,10 +54,14 @@ export default function SessionBuilder({
         return acc;
       }, 0);
 
+      // Distinguish Major vs Minor muscles for achievable targets
+      const isMajor = ["chest", "back", "legs"].includes(muscle.toLowerCase());
+      const goodThreshold = isMajor ? 5 : 3;
+      const optimalThreshold = isMajor ? 9 : 6;
+
       let status: "low" | "good" | "optimal" = "low";
-      // Thresholds based on hypertrophy science per session
-      if (muscleSets >= 9) status = "optimal";
-      else if (muscleSets >= 6) status = "good";
+      if (muscleSets >= optimalThreshold) status = "optimal";
+      else if (muscleSets >= goodThreshold) status = "good";
       
       analysis[muscle] = { sets: muscleSets, status };
     });
@@ -133,7 +137,7 @@ export default function SessionBuilder({
                   data.status === "optimal" ? "bg-neon-green/10 text-neon-green" :
                   data.status === "good" ? "bg-neon-blue/10 text-neon-blue" : "bg-neon-red/10 text-neon-red"
                 }`}>
-                  {data.sets} Sets • {data.status}
+                  {data.sets} Sets • {data.status === "optimal" ? "Bonus Volume" : data.status === "good" ? "Goal Hit" : "Under Trained"}
                 </span>
               </div>
               <div className="h-1.5 bg-surface-lighter rounded-full overflow-hidden">
