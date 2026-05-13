@@ -8,6 +8,7 @@ import { foods } from "@/lib/data/foods";
 import { MealType, FoodItem } from "@/lib/types";
 import ProgressRing from "@/components/ui/ProgressRing";
 import FoodBot from "@/components/FoodBot";
+import indianFoods from "@/lib/indian-food-library.json";
 
 const mealTypes: { label: string; value: MealType; icon: string }[] = [
   { label: "Breakfast", value: "breakfast", icon: "🌅" },
@@ -52,7 +53,23 @@ export default function NutritionScreen() {
   const calRemaining = Math.max(0, user.calorieTarget - totals.calories);
   const calPercent = Math.min((totals.calories / user.calorieTarget) * 100, 100);
 
-  const filteredFoods = foods.filter((f) => {
+  const allAvailableFoods = useMemo(() => {
+    const convertedIndian = (indianFoods as any[]).map(f => ({
+      id: f.id,
+      name: f.name,
+      calories: f.calories,
+      protein: f.protein,
+      carbs: f.carbs,
+      fats: f.fat,
+      servingSize: "1",
+      servingUnit: f.servingUnit || "serving",
+      category: "indian",
+      isVeg: true
+    }));
+    return [...foods, ...convertedIndian];
+  }, []);
+
+  const filteredFoods = allAvailableFoods.filter((f) => {
     const matchSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchFilter = foodFilter === "all" || f.category === foodFilter;
     return matchSearch && matchFilter;

@@ -6,6 +6,7 @@ import { Bot, Send, X, Plus, Check, Utensils } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { foods } from "@/lib/data/foods";
 import { FoodItem, MealType } from "@/lib/types";
+import indianFoods from "@/lib/indian-food-library.json";
 
 // Extended knowledge base for foods NOT in the database
 const foodKnowledge: Record<string, { calories: number; protein: number; carbs: number; fats: number; serving: string }> = {
@@ -152,17 +153,25 @@ function parseFoodInput(input: string): { items: { name: string; qty: number }[]
   return { items };
 }
 
-function findFood(name: string): { source: "db" | "knowledge" | null; food: any } {
+function findFood(name: string): { source: "db" | "knowledge" | "indian" | null; food: any } {
   const n = name.toLowerCase().replace(/s$/, ""); // remove trailing s (plurals)
   
-  // Check main database first (fuzzy match)
+  // 1. Check Indian Database first (Priority for this user)
+  const indianMatch = (indianFoods as any[]).find(f => 
+    f.name.toLowerCase() === n || 
+    f.name.toLowerCase().includes(n) ||
+    n.includes(f.name.toLowerCase())
+  );
+  if (indianMatch) return { source: "indian", food: indianMatch };
+
+  // 2. Check main database second
   const dbMatch = foods.find(f => 
     f.name.toLowerCase().includes(n) || 
     n.includes(f.name.toLowerCase().split("(")[0].trim().toLowerCase())
   );
   if (dbMatch) return { source: "db", food: dbMatch };
   
-  // Check knowledge base
+  // 3. Check hardcoded knowledge base
   for (const [key, val] of Object.entries(foodKnowledge)) {
     if (key.includes(n) || n.includes(key)) {
       return { source: "knowledge", food: { name: key, ...val } };
@@ -306,6 +315,12 @@ export default function FoodBot({ onClose }: { onClose: () => void }) {
         totalC += f.carbs * item.qty;
         totalF += f.fats * item.qty;
         foundItems.push(`${item.qty}× ${f.name}`);
+      } else if (result.source === "indian") {
+        totalCals += result.food.calories * item.qty;
+        totalP += result.food.protein * item.qty;
+        totalC += result.food.carbs * item.qty;
+        totalF += result.food.fat * item.qty;
+        foundItems.push(`${item.qty}× ${result.food.name}`);
       } else if (result.source === "knowledge") {
         totalCals += result.food.calories * item.qty;
         totalP += result.food.protein * item.qty;
