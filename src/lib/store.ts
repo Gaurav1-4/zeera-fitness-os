@@ -122,7 +122,7 @@ export const useAppStore = create<AppState>()(
           const isFatLoss = s.user.goal === "lose";
 
           // Monday Cardio Rule: Inject cardio warmup if it's Monday and goal is Fat Loss
-          if (today === 1 && isFatLoss && !adjustedExercises.some(e => e.name.toLowerCase().includes("treadmill") || e.name.toLowerCase().includes("bike"))) {
+          if (today === 1 && isFatLoss && !adjustedExercises.some(e => e.exercise?.name?.toLowerCase().includes("treadmill") || e.exercise?.name?.toLowerCase().includes("bike"))) {
             // Find a cardio exercise ID (we'll use a standard placeholder or search logic)
             const cardioExercise = {
               id: "cardio-warmup-auto",
