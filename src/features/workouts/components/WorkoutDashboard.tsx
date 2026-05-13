@@ -32,6 +32,7 @@ const muscleColors: Record<string, string> = {
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import DailyCardioTab from "./DailyCardio/DailyCardioTab";
+import SessionBuilder from "./SessionBuilder/SessionBuilder";
 
 export default function WorkoutScreen() {
   const { startWorkout } = useAppStore();
@@ -42,6 +43,7 @@ export default function WorkoutScreen() {
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
   const [apiExercises, setApiExercises] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState<any | null>(null);
 
   useEffect(() => {
     async function fetchExercises() {
@@ -168,14 +170,13 @@ export default function WorkoutScreen() {
                       ))}
                     </div>
                     <button
-                      onClick={() => {
-                        startWorkout(workout.id, workout.name, workout.exercises);
-                        router.push('/session');
-                      }}
-                      className="w-full py-3 rounded-xl gradient-neon text-background font-semibold text-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
-                    >
-                      <Zap className="w-4 h-4" /> Start Workout
-                    </button>
+                  onClick={() => {
+                    setPendingPlan(workout);
+                  }}
+                  className="w-full py-3 rounded-xl gradient-neon text-background font-semibold text-sm active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+                >
+                  <Zap className="w-4 h-4" /> Customize & Start
+                </button>
                   </div>
                 </motion.div>
               ))}
@@ -357,6 +358,32 @@ export default function WorkoutScreen() {
             </>
           )}
         </motion.div>
+      </AnimatePresence>
+
+      {/* Session Architect / Builder */}
+      <AnimatePresence>
+        {pendingPlan && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed inset-0 z-[60]"
+          >
+            <SessionBuilder 
+              planId={pendingPlan.id}
+              planName={pendingPlan.name}
+              initialExercises={pendingPlan.exercises}
+              targetMuscles={pendingPlan.targetMuscles}
+              allExercises={allExercises}
+              onBack={() => setPendingPlan(null)}
+              onStart={(finalExercises) => {
+                startWorkout(pendingPlan.id, pendingPlan.name, finalExercises);
+                setPendingPlan(null);
+                router.push('/session');
+              }}
+            />
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
