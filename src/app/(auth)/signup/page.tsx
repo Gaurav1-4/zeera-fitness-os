@@ -12,6 +12,7 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -44,8 +45,8 @@ export default function SignupPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push("/onboarding");
-      router.refresh();
+      setSuccess(true);
+      setLoading(false);
     }
   };
 
@@ -61,10 +62,28 @@ export default function SignupPage() {
             <Flame className="w-12 h-12 text-neon-green" />
           </div>
           
-          <h1 className="text-3xl font-display font-bold text-text-primary text-center mb-2">Create Account</h1>
-          <p className="text-text-secondary text-center mb-8">Join ZEERA to transform your fitness</p>
+          <h1 className="text-3xl font-display font-bold text-text-primary text-center mb-2">
+            {success ? "Check Your Mail" : "Create Account"}
+          </h1>
+          <p className="text-text-secondary text-center mb-8">
+            {success ? "We've sent a verification link to your email. Please verify to continue." : "Join ZEERA to transform your fitness"}
+          </p>
 
-          <form onSubmit={handleSignup} className="space-y-4">
+          {success ? (
+            <div className="space-y-6">
+              <div className="bg-neon-green/10 border border-neon-green/30 rounded-2xl p-6 text-center">
+                <p className="text-text-primary text-sm font-medium mb-2">Verification Email Sent!</p>
+                <p className="text-text-muted text-xs">Once verified, you'll be able to log in and start your journey.</p>
+              </div>
+              <button 
+                onClick={() => router.push("/login")}
+                className="w-full py-4 rounded-xl gradient-neon text-background font-bold active:scale-[0.98] transition-transform"
+              >
+                Go to Login
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSignup} className="space-y-4">
             <div>
               <input
                 type="text"

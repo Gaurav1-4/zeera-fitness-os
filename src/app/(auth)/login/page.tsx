@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -21,8 +22,21 @@ export default function LoginPage() {
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
-    });
     if (error) setError(error.message);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError("Please enter your email address first.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    setLoading(false);
+    if (error) setError(error.message);
+    else setMessage("Password reset link sent to your email!");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -139,6 +153,19 @@ export default function LoginPage() {
             {error && (
               <p className="text-neon-red text-sm text-center">{error}</p>
             )}
+            {message && (
+              <p className="text-neon-green text-sm text-center">{message}</p>
+            )}
+
+            <div className="flex justify-end">
+              <button 
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-text-muted text-xs hover:text-neon-blue transition-colors"
+              >
+                Forgot Password?
+              </button>
+            </div>
 
             <button
               type="submit"
