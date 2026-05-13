@@ -23,15 +23,15 @@ export async function optimizeMedia(inputPath: string): Promise<OptimizationResu
   const thumbnailPath = path.join(baseDir, `${baseName}.jpg`);
 
   try {
-    // 1. Convert GIF to MP4 (Optimized for mobile: H.264, YUV420P)
-    // We use CRF 28 for a good balance of size/quality, and "faststart" for instant playback
-    await execPromise(`ffmpeg -y -i "${inputPath}" -movflags faststart -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -crf 28 "${mp4Path}"`);
+    // 1. Convert GIF to MP4 (Pro-Grade: H.264, High Bitrate)
+    // Adding unsharp filter to crisp up edges and using CRF 17 for near-lossless quality
+    await execPromise(`ffmpeg -y -i "${inputPath}" -movflags +faststart -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2,unsharp=5:5:1.0:5:5:0.0" -c:v libx264 -crf 17 -preset slow "${mp4Path}"`);
 
-    // 2. Convert GIF to WebM (Optimized for modern browsers)
-    await execPromise(`ffmpeg -y -i "${inputPath}" -c:v libvpx-vp9 -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" -crf 30 -b:v 0 -an "${webmPath}"`);
+    // 2. Convert GIF to WebM (Pro-Grade VP9)
+    await execPromise(`ffmpeg -y -i "${inputPath}" -c:v libvpx-vp9 -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2,unsharp=5:5:1.0:5:5:0.0" -crf 20 -b:v 0 -an "${webmPath}"`);
 
-    // 3. Generate Thumbnail (JPG, first frame)
-    await execPromise(`ffmpeg -y -i "${inputPath}" -frames:v 1 -q:v 2 "${thumbnailPath}"`);
+    // 3. Generate Thumbnail (High Quality JPG)
+    await execPromise(`ffmpeg -y -i "${inputPath}" -frames:v 1 -q:v 1 "${thumbnailPath}"`);
 
     return { mp4Path, webmPath, thumbnailPath };
   } catch (error) {

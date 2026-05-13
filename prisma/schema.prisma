@@ -110,6 +110,12 @@ model Exercise {
   
   // New Enrichment Fields
   movementPattern String?  // Squat, Hinge, Push, Pull, Lunge, Core
+  category        String?  // e.g. "push", "pull", "legs"
+  isCompound      Boolean  @default(true)
+  isBeginnerFriendly Boolean @default(true)
+  injuryCautions  String[]
+  commonMistakes  String[]
+  aiCoachingTips  String[]
   mechanics       String?  // Compound, Isolation
   forceType       String?  // Push, Pull, Static
   exerciseType    String?  // Strength, Cardio, Stretching
@@ -125,7 +131,6 @@ model Exercise {
   qualityScore    Float    @default(0)
   
   secondaryMuscles String[]
-  commonMistakes  String[]
   safetyWarnings  String[]
   breathingTips   String?
   beginnerMods    String[]

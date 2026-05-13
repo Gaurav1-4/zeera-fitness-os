@@ -56,10 +56,12 @@ async function mirrorAppExercises() {
         include: { media: true }
       });
       
+      /*
       if (existing && existing.media.length > 0) {
         console.log(`  Already exists in DB with media. Skipping.`);
         continue;
       }
+      */
 
       console.log(`  Searching API for: ${item.search}`);
       const response = await axios.get(`https://${apiHost}/exercises/name/${encodeURIComponent(item.search)}`, {
@@ -101,8 +103,8 @@ async function mirrorAppExercises() {
         }
       });
 
-      // Mirror Media
-      const sourceGifUrl = match.gifUrl || `https://${apiHost}/image?exerciseId=${match.id}&resolution=360`;
+      // Mirror Media (Forcing HD Source)
+      const sourceGifUrl = `https://${apiHost}/image?exerciseId=${match.id}&resolution=720`;
       try {
         const mirroredAssets = await mirrorMediaToZeera(sourceGifUrl, match.id);
         
