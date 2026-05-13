@@ -35,7 +35,7 @@ import DailyCardioTab from "./DailyCardio/DailyCardioTab";
 import SessionBuilder from "./SessionBuilder/SessionBuilder";
 
 export default function WorkoutScreen() {
-  const { startWorkout } = useAppStore();
+  const { startWorkout, checkMeasurementReminder } = useAppStore();
   const router = useRouter();
   const [view, setView] = useState<"plans" | "cardio" | "library">("plans");
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,6 +46,7 @@ export default function WorkoutScreen() {
   const [pendingPlan, setPendingPlan] = useState<any | null>(null);
 
   useEffect(() => {
+    checkMeasurementReminder();
     async function fetchExercises() {
       setLoading(true);
       try {

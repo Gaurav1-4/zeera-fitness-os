@@ -46,6 +46,10 @@ export default function SessionBuilder({
   const volumeAnalysis = useMemo(() => {
     const analysis: Record<string, { sets: number; status: "low" | "good" | "optimal" }> = {};
     
+    const { user, measurements } = useAppStore();
+    const lastM = measurements[measurements.length - 1];
+    const bodyFat = lastM?.bodyFat || 20; // Default to 20% if not available
+
     targetMuscles.forEach(muscle => {
       const muscleSets = bucketList.reduce((acc, ex) => {
         if (ex.exercise?.muscle === muscle || ex.muscle === muscle) {
@@ -54,10 +58,18 @@ export default function SessionBuilder({
         return acc;
       }, 0);
 
-      // Distinguish Major vs Minor muscles for achievable targets
+      // Composition-Responsive Logic:
+      // Leaner individuals (<15%) need higher volume to preserve muscle.
+      // Higher BF% individuals (>25%) can focus more on metabolic intensity.
       const isMajor = ["chest", "back", "legs"].includes(muscle.toLowerCase());
-      const goodThreshold = isMajor ? 5 : 3;
-      const optimalThreshold = isMajor ? 9 : 6;
+      const isLean = bodyFat < 15;
+      const isHighBF = bodyFat > 25;
+
+      const baseGood = isMajor ? 5 : 3;
+      const baseOptimal = isMajor ? 9 : 6;
+
+      const goodThreshold = isLean ? baseGood + 2 : isHighBF ? baseGood - 1 : baseGood;
+      const optimalThreshold = isLean ? baseOptimal + 2 : isHighBF ? baseOptimal - 1 : baseOptimal;
 
       let status: "low" | "good" | "optimal" = "low";
       if (muscleSets >= optimalThreshold) status = "optimal";

@@ -25,11 +25,20 @@ export default function DailyCardioTab() {
     );
   }, [workoutLogs, today]);
 
+  const targetBurn = useMemo(() => {
+    const lastM = user.weight ? { bodyFat: 20 } : null; // Fallback
+    const realLastM = useAppStore.getState().measurements[useAppStore.getState().measurements.length - 1];
+    const bf = realLastM?.bodyFat || 20;
+
+    if (bf > 25) return 350;
+    if (bf < 15) return 150;
+    return 250;
+  }, [user]);
+
   const todayBurn = useMemo(() => {
     return todayLogs.reduce((acc, log) => acc + (log.caloriesBurned || 0), 0);
   }, [todayLogs]);
 
-  const targetBurn = 250;
   const progress = Math.min((todayBurn / targetBurn) * 100, 100);
 
   const calculateCurrentBurn = () => {

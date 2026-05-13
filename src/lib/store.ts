@@ -78,6 +78,9 @@ interface AppState {
   // Navigation
   activeTab: string;
   setActiveTab: (tab: string) => void;
+
+  // Reminders
+  checkMeasurementReminder: () => void;
 }
 
 const defaultUser: UserProfile = {
@@ -198,6 +201,28 @@ export const useAppStore = create<AppState>()(
 
       activeTab: "home",
       setActiveTab: (tab) => set({ activeTab: tab }),
+
+      checkMeasurementReminder: () => set((s) => {
+        const lastM = s.measurements[s.measurements.length - 1];
+        const lastDate = lastM ? new Date(lastM.date).getTime() : 0;
+        const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+
+        const hasRecentReminder = s.insights.some(i => i.type === "progress" && i.id === "measurement-reminder");
+
+        if (lastDate < sevenDaysAgo && !hasRecentReminder) {
+          const reminder: AIInsight = {
+            id: "measurement-reminder",
+            type: "progress",
+            message: "Weekly Progress Pulse: It's been over 7 days since your last weigh-in. Update your data to keep your calorie targets 100% accurate.",
+            priority: "high",
+            icon: "Scale",
+            date: new Date().toISOString(),
+            read: false
+          };
+          return { insights: [reminder, ...s.insights] };
+        }
+        return {};
+      }),
     }),
     { 
       name: "zeera-fitness-store",
