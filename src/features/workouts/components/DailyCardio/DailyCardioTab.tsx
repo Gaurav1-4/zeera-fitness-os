@@ -237,11 +237,11 @@ export default function DailyCardioTab() {
               className="bg-surface rounded-2xl p-4 border border-border/30 flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${log.exercises[0]?.name.includes("Treadmill") ? "bg-neon-blue/10 text-neon-blue" : "bg-neon-purple/10 text-neon-purple"}`}>
-                  {log.exercises[0]?.name.includes("Treadmill") ? <Activity className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${log.exercises[0]?.exercise?.name.includes("Treadmill") ? "bg-neon-blue/10 text-neon-blue" : "bg-neon-purple/10 text-neon-purple"}`}>
+                  {log.exercises[0]?.exercise?.name.includes("Treadmill") ? <Activity className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-text-primary">{log.exercises[0]?.name}</p>
+                  <p className="text-sm font-bold text-text-primary">{log.exercises[0]?.exercise?.name}</p>
                   <p className="text-[10px] text-text-muted">{formatDuration(log.duration)} • {log.exercises[0]?.notes}</p>
                 </div>
               </div>
