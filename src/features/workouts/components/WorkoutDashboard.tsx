@@ -7,7 +7,6 @@ import { useAppStore } from "@/lib/store";
 import { workoutPlans } from "@/features/workouts/data/workouts";
 import { exercises } from "@/features/workouts/data/exercises";
 import { MuscleGroup } from "@/lib/types";
-import AiPlanGenerator from "./PlanGenerator/AiPlanGenerator";
 
 const muscleFilters: { label: string; value: MuscleGroup | "all" }[] = [
   { label: "All", value: "all" },
@@ -42,7 +41,6 @@ export default function WorkoutScreen() {
   const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(null);
   const [apiExercises, setApiExercises] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showAiGenerator, setShowAiGenerator] = useState(false);
 
   useEffect(() => {
     async function fetchExercises() {
@@ -99,10 +97,6 @@ export default function WorkoutScreen() {
   });
 
   const selEx = selectedExerciseId ? allExercises.find((e) => e.id === selectedExerciseId) : null;
-
-  if (showAiGenerator) {
-    return <AiPlanGenerator onBack={() => setShowAiGenerator(false)} />;
-  }
 
   return (
     <div className="px-4 pt-14 pb-4">
