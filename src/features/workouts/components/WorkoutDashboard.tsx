@@ -49,21 +49,23 @@ export default function WorkoutScreen() {
   useEffect(() => {
     checkMeasurementReminder();
     async function fetchExercises() {
-      // Check cache first for instant loading
+      // Load from permanent cache first
       try {
         const cached = await getCachedExercises();
         if (cached && cached.length > 0) {
           setApiExercises(cached);
           setLoading(false);
+          return; // Cache hit — don't call the API at all
         }
       } catch (err) {
         console.error("Failed to load cached exercises:", err);
       }
 
+      // First-time only: fetch from our own DB and cache permanently
       try {
         const res = await fetch("/api/exercises?limit=1000");
         const data = await res.json();
-        if (data.items) {
+        if (data.items && data.items.length > 0) {
           setApiExercises(data.items);
           await setCachedExercises(data.items);
         }
