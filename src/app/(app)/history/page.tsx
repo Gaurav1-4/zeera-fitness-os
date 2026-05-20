@@ -222,10 +222,10 @@ export default function HistoryPage() {
               <div className="px-5 pb-10 space-y-5">
                 {/* ── Daily Summary Cards ── */}
                 <div className="grid grid-cols-2 gap-2.5">
-                  <SummaryCard icon={<Flame className="w-4 h-4" />} color="neon-orange" label="Consumed" value={`${selectedDayData.totalCaloriesConsumed}`} unit="kcal" />
-                  <SummaryCard icon={<Zap className="w-4 h-4" />} color="neon-red" label="Burned" value={`${selectedDayData.totalCaloriesBurned}`} unit="kcal" />
-                  <SummaryCard icon={<Target className="w-4 h-4" />} color="neon-blue" label="Protein" value={`${Math.round(selectedDayData.totalProtein)}`} unit={`/ ${user.proteinTarget}g`} />
-                  <SummaryCard icon={<Trophy className="w-4 h-4" />} color="neon-green" label="Volume" value={selectedDayData.totalVolume.toLocaleString()} unit="kg" />
+                  <SummaryCard icon={<Flame className="w-4 h-4" />} color="neon-orange" label="Consumed" value={`${selectedDayData.totalCaloriesConsumed || 0}`} unit="kcal" />
+                  <SummaryCard icon={<Zap className="w-4 h-4" />} color="neon-red" label="Burned" value={`${selectedDayData.totalCaloriesBurned || 0}`} unit="kcal" />
+                  <SummaryCard icon={<Target className="w-4 h-4" />} color="neon-blue" label="Protein" value={`${Math.round(selectedDayData.totalProtein || 0)}`} unit={`/ ${user.proteinTarget || 0}g`} />
+                  <SummaryCard icon={<Trophy className="w-4 h-4" />} color="neon-green" label="Volume" value={(selectedDayData.totalVolume || 0).toLocaleString()} unit="kg" />
                 </div>
 
                 {/* ── Macro Breakdown ── */}
@@ -320,17 +320,18 @@ function MacroBar({ label, value, target, color, unit }: { label: string; value:
 
 function WorkoutDetailCard({ workout }: { workout: WorkoutLog }) {
   const [expanded, setExpanded] = useState(false);
-  const completedSets = workout.exercises.reduce((a, e) => a + e.sets.filter((s) => s.completed).length, 0);
-  const totalSets = workout.exercises.reduce((a, e) => a + e.sets.length, 0);
+  const exerciseList = workout.exercises || [];
+  const completedSets = exerciseList.reduce((a, e) => a + (e.sets || []).filter((s) => s.completed).length, 0);
+  const totalSets = exerciseList.reduce((a, e) => a + (e.sets || []).length, 0);
 
   return (
     <div className="bg-surface rounded-2xl border border-border/50 overflow-hidden">
       <button onClick={() => setExpanded(!expanded)} className="w-full p-4 text-left flex items-center justify-between">
         <div>
-          <p className="text-text-primary font-bold text-sm">{workout.workoutName}</p>
+          <p className="text-text-primary font-bold text-sm">{workout.workoutName || "Workout"}</p>
           <div className="flex items-center gap-3 mt-1 text-text-muted text-[10px] font-medium">
-            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {Math.round(workout.duration / 60)} min</span>
-            <span className="flex items-center gap-1"><Flame className="w-3 h-3" /> {workout.caloriesBurned} kcal</span>
+            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {Math.round((workout.duration || 0) / 60)} min</span>
+            <span className="flex items-center gap-1"><Flame className="w-3 h-3" /> {workout.caloriesBurned || 0} kcal</span>
             <span className="flex items-center gap-1"><Check className="w-3 h-3" /> {completedSets}/{totalSets}</span>
           </div>
         </div>
@@ -341,24 +342,26 @@ function WorkoutDetailCard({ workout }: { workout: WorkoutLog }) {
         {expanded && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
             <div className="px-4 pb-4 space-y-2.5 border-t border-border/30 pt-3">
-              {workout.exercises.map((ex, i) => {
-                const doneSets = ex.sets.filter((s) => s.completed);
-                const bestSet = doneSets.reduce((best, s) => (s.weight * s.reps > best.weight * best.reps ? s : best), { weight: 0, reps: 0 } as any);
+              {exerciseList.map((ex, i) => {
+                const sets = ex.sets || [];
+                const doneSets = sets.filter((s) => s.completed);
+                const bestSet = doneSets.length > 0
+                  ? doneSets.reduce((best, s) => ((s.weight || 0) * (s.reps || 0) > (best.weight || 0) * (best.reps || 0) ? s : best), doneSets[0])
+                  : null;
                 return (
                   <div key={i} className="bg-surface-lighter rounded-xl p-3">
                     <div className="flex items-center justify-between mb-1.5">
                       <p className="text-text-primary text-xs font-bold truncate max-w-[200px]">{ex.exercise?.name || "Exercise"}</p>
                       <span className="text-[9px] font-bold text-text-muted uppercase">{ex.exercise?.muscle || ""}</span>
                     </div>
-                    {/* Set details */}
                     <div className="flex flex-wrap gap-1.5">
-                      {ex.sets.map((set, si) => (
+                      {sets.map((set, si) => (
                         <span key={si} className={`px-2 py-0.5 rounded-md text-[9px] font-bold ${set.completed ? "bg-neon-green/10 text-neon-green" : "bg-surface text-text-muted"}`}>
-                          {set.weight > 0 ? `${set.weight}kg × ${set.reps}` : set.reps > 0 ? `BW × ${set.reps}` : "—"}
+                          {(set.weight || 0) > 0 ? `${set.weight}kg × ${set.reps || 0}` : (set.reps || 0) > 0 ? `BW × ${set.reps}` : "—"}
                         </span>
                       ))}
                     </div>
-                    {bestSet.weight > 0 && (
+                    {bestSet && (bestSet.weight || 0) > 0 && (
                       <p className="text-[9px] text-neon-green mt-1.5 font-bold flex items-center gap-1">
                         <Trophy className="w-3 h-3" /> Best: {bestSet.weight}kg × {bestSet.reps}
                       </p>
@@ -368,7 +371,7 @@ function WorkoutDetailCard({ workout }: { workout: WorkoutLog }) {
               })}
               <div className="flex items-center justify-between pt-2 border-t border-border/20">
                 <span className="text-[10px] text-text-muted font-bold">Total Volume</span>
-                <span className="text-xs text-text-primary font-bold">{workout.totalVolume.toLocaleString()} kg</span>
+                <span className="text-xs text-text-primary font-bold">{(workout.totalVolume || 0).toLocaleString()} kg</span>
               </div>
             </div>
           </motion.div>
