@@ -12,7 +12,7 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // 1. Fast path: Public API routes and static assets bypass auth verification entirely
+  // 1. Fast path: Public routes bypass auth entirely
   if (
     pathname.startsWith('/api/exercises') ||
     pathname.startsWith('/auth') ||
@@ -21,8 +21,7 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
-  // 2. Pre-flight session cookie check
-  // Avoid checking auth via network if the user doesn't even have a Supabase session cookie.
+  // 2. Pre-flight cookie check — no cookie = no session, skip network
   const allCookies = request.cookies.getAll()
   const hasAuthCookie = allCookies.some(c => 
     c.name.startsWith('sb-') || 
@@ -32,7 +31,6 @@ export async function updateSession(request: NextRequest) {
 
   const isLoginOrSignup = pathname.startsWith('/login') || pathname.startsWith('/signup')
 
-  // If no auth cookie exists, we don't need to make any network call
   if (!hasAuthCookie) {
     if (!isLoginOrSignup) {
       const redirectUrl = request.nextUrl.clone()
@@ -42,7 +40,9 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
-  // 3. Authenticated check (runs ONLY if session cookie is present)
+  // 3. Session check using LOCAL JWT (no network call)
+  // getSession() reads the JWT from the cookie — instant, zero latency.
+  // getUser() would call Supabase servers on every navigation = 1-2s delay.
   const supabase = createServerClient(
     url,
     key,
@@ -52,7 +52,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -64,20 +64,21 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
+  // Fast local JWT check — no network roundtrip
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
 
-  if (!user && !isLoginOrSignup) {
+  if (!session && !isLoginOrSignup) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/login'
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (user && isLoginOrSignup) {
-      const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/home'
-      return NextResponse.redirect(redirectUrl)
+  if (session && isLoginOrSignup) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/home'
+    return NextResponse.redirect(redirectUrl)
   }
 
   return supabaseResponse
