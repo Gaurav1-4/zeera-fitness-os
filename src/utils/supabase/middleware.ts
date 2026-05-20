@@ -10,6 +10,39 @@ export async function updateSession(request: NextRequest) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!url || !key) return supabaseResponse
 
+  const { pathname } = request.nextUrl
+
+  // 1. Fast path: Public API routes and static assets bypass auth verification entirely
+  if (
+    pathname.startsWith('/api/exercises') ||
+    pathname.startsWith('/auth') ||
+    pathname.includes('.')
+  ) {
+    return supabaseResponse
+  }
+
+  // 2. Pre-flight session cookie check
+  // Avoid checking auth via network if the user doesn't even have a Supabase session cookie.
+  const allCookies = request.cookies.getAll()
+  const hasAuthCookie = allCookies.some(c => 
+    c.name.startsWith('sb-') || 
+    c.name.includes('supabase') || 
+    c.name.includes('auth-token')
+  )
+
+  const isLoginOrSignup = pathname.startsWith('/login') || pathname.startsWith('/signup')
+
+  // If no auth cookie exists, we don't need to make any network call
+  if (!hasAuthCookie) {
+    if (!isLoginOrSignup) {
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/login'
+      return NextResponse.redirect(redirectUrl)
+    }
+    return supabaseResponse
+  }
+
+  // 3. Authenticated check (runs ONLY if session cookie is present)
   const supabase = createServerClient(
     url,
     key,
@@ -35,22 +68,16 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/signup') &&
-    !request.nextUrl.pathname.startsWith('/api/exercises')
-  ) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  if (!user && !isLoginOrSignup) {
+    const redirectUrl = request.nextUrl.clone()
+    redirectUrl.pathname = '/login'
+    return NextResponse.redirect(redirectUrl)
   }
 
-  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup')) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/home'
-      return NextResponse.redirect(url)
+  if (user && isLoginOrSignup) {
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/home'
+      return NextResponse.redirect(redirectUrl)
   }
 
   return supabaseResponse

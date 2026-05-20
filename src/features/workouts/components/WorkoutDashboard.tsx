@@ -33,6 +33,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import DailyCardioTab from "./DailyCardio/DailyCardioTab";
 import SessionBuilder from "./SessionBuilder/SessionBuilder";
+import { getCachedExercises, setCachedExercises } from "@/services/exercise-engine/cacheManager";
 
 export default function WorkoutScreen() {
   const { startWorkout, checkMeasurementReminder } = useAppStore();
@@ -48,12 +49,23 @@ export default function WorkoutScreen() {
   useEffect(() => {
     checkMeasurementReminder();
     async function fetchExercises() {
-      setLoading(true);
+      // Check cache first for instant loading
       try {
-        const res = await fetch("/api/exercises?limit=100");
+        const cached = await getCachedExercises();
+        if (cached && cached.length > 0) {
+          setApiExercises(cached);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Failed to load cached exercises:", err);
+      }
+
+      try {
+        const res = await fetch("/api/exercises?limit=1000");
         const data = await res.json();
         if (data.items) {
           setApiExercises(data.items);
+          await setCachedExercises(data.items);
         }
       } catch (err) {
         console.error("Failed to fetch exercises:", err);
