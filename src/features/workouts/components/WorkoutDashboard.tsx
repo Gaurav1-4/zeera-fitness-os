@@ -385,7 +385,22 @@ export default function WorkoutScreen() {
             <SessionBuilder 
               planId={pendingPlan.id}
               planName={pendingPlan.name}
-              initialExercises={pendingPlan.exercises}
+              initialExercises={pendingPlan.exercises.map((pe: any) => {
+                // Try to find the API version of this exercise (has real GIFs/videos)
+                const localEx = pe.exercise;
+                if (!localEx) return pe;
+                const apiMatch = allExercises.find(
+                  (ae: any) => ae.name?.toLowerCase() === localEx.name?.toLowerCase()
+                );
+                if (apiMatch) {
+                  return {
+                    ...pe,
+                    exercise: { ...localEx, ...apiMatch, id: localEx.id },
+                    imageUrl: apiMatch.imageUrl || localEx.imageUrl,
+                  };
+                }
+                return pe;
+              })}
               targetMuscles={pendingPlan.targetMuscles}
               allExercises={allExercises}
               onBack={() => setPendingPlan(null)}
