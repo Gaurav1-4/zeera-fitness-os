@@ -1,3 +1,4 @@
+export {};
 
 async function testSupabaseMedia() {
   const url = "https://zzwyxdegwtpsuipfvbch.supabase.co/storage/v1/object/public/exercise-media/thumbnails/0011.jpg";
