@@ -3,7 +3,7 @@ export function getOptimizedMediaUrl(url: string, type: string = 'gif'): string 
   // Future architecture: Map ExerciseDB URLs to Supabase Storage URLs,
   // compress media, convert heavy GIFs to MP4/WebP, and generate thumbnails.
   
-  if (!url) return '/placeholder-exercise.jpg'; // graceful fallback
+  if (!url) return '/placeholder-exercise.svg'; // graceful fallback
   
   return url;
 }

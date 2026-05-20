@@ -28,7 +28,7 @@ interface ExerciseCardProps {
 
 export const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, onClick }) => {
   const media = exercise.media?.[0];
-  const thumbnailUrl = media?.thumbnailUrl || '/placeholder-exercise.jpg';
+  const thumbnailUrl = media?.thumbnailUrl || '/placeholder-exercise.svg';
 
   return (
     <motion.div

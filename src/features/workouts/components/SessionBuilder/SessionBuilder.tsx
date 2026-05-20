@@ -173,7 +173,7 @@ export default function SessionBuilder({
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl overflow-hidden">
                   <img
-                    src={ex.exercise?.media?.[0]?.thumbnailUrl || '/placeholder-exercise.jpg'}
+                    src={ex.exercise?.imageUrl || ex.exercise?.media?.[0]?.thumbnailUrl || ex.exercise?.media?.[0]?.url || ex.imageUrl || ex.media?.[0]?.thumbnailUrl || '/placeholder-exercise.svg'}
                     alt={ex.name || ex.exercise?.name}
                     className="w-full h-full object-cover"
                   />
@@ -248,7 +248,7 @@ export default function SessionBuilder({
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg overflow-hidden">
                   <img
-                    src={ex.media?.[0]?.thumbnailUrl || '/placeholder-exercise.jpg'}
+                    src={ex.imageUrl || ex.media?.[0]?.thumbnailUrl || ex.media?.[0]?.url || ex.exercise?.imageUrl || '/placeholder-exercise.svg'}
                     alt={ex.name}
                     className="w-full h-full object-cover"
                   />
