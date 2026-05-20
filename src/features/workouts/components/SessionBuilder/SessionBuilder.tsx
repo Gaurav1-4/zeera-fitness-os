@@ -2,20 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Zap, 
-  Plus, 
-  Trash2, 
-  CheckCircle2, 
-  AlertCircle, 
-  ChevronRight, 
-  Dumbbell, 
-  Sparkles,
-  ArrowRight,
-  Info,
-  Search,
-  Filter
-} from "lucide-react";
+import { Dumbbell, Plus, Sparkles, Trash2, Filter, Search, ArrowRight, Zap } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { MuscleGroup } from "@/lib/types";
 
@@ -41,12 +28,12 @@ export default function SessionBuilder({
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeMuscleFilter, setActiveMuscleFilter] = useState<MuscleGroup | "all">("all");
+  const { user, measurements } = useAppStore();
 
   // Volume Analysis Logic
   const volumeAnalysis = useMemo(() => {
     const analysis: Record<string, { sets: number; status: "low" | "good" | "optimal" }> = {};
     
-    const { user, measurements } = useAppStore();
     const lastM = measurements[measurements.length - 1];
     const bodyFat = lastM?.bodyFat || 20; // Default to 20% if not available
 
@@ -184,8 +171,12 @@ export default function SessionBuilder({
               className="bg-surface rounded-2xl p-4 border border-border/30 flex items-center justify-between group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-surface-lighter flex items-center justify-center text-neon-blue">
-                  <Dumbbell className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-xl overflow-hidden">
+                  <img
+                    src={ex.exercise?.media?.[0]?.thumbnailUrl || '/placeholder-exercise.jpg'}
+                    alt={ex.name || ex.exercise?.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-text-primary truncate max-w-[200px]">{ex.name || ex.exercise?.name}</p>
@@ -255,8 +246,12 @@ export default function SessionBuilder({
               className="w-full bg-surface/50 rounded-xl p-3 border border-border/30 flex items-center justify-between group active:scale-[0.98] transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-surface-lighter flex items-center justify-center text-text-muted group-hover:text-neon-blue">
-                  <Plus className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-lg overflow-hidden">
+                  <img
+                    src={ex.media?.[0]?.thumbnailUrl || '/placeholder-exercise.jpg'}
+                    alt={ex.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="text-left">
                   <p className="text-xs font-bold text-text-primary">{ex.name}</p>

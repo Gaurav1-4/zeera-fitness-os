@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { Home, Dumbbell, PieChart, TrendingUp, User, Bug } from "lucide-react";
+import { Home, Dumbbell, PieChart, TrendingUp, User, Bug, History } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useOfflineSync } from "@/hooks/useOfflineSync";
@@ -73,7 +73,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { id: "workout", icon: Dumbbell, label: "Workout", path: "/workout" },
     { id: "nutrition", icon: PieChart, label: "Nutrition", path: "/nutrition" },
     { id: "progress", icon: TrendingUp, label: "Progress", path: "/progress" },
-    { id: "profile", icon: User, label: "Profile", path: "/profile" },
+    { id: "history", icon: History, label: "History", path: "/history" },
   ];
 
   return (
