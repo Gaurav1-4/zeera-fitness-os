@@ -92,13 +92,13 @@ export default function HistoryPage() {
         workouts: dayWorkouts,
         meals: dayMeals,
         measurement: dayMeas,
-        totalCaloriesConsumed: dayMeals.reduce((s, m) => s + m.foodItem.calories * m.quantity, 0),
-        totalProtein: dayMeals.reduce((s, m) => s + m.foodItem.protein * m.quantity, 0),
-        totalCarbs: dayMeals.reduce((s, m) => s + m.foodItem.carbs * m.quantity, 0),
-        totalFats: dayMeals.reduce((s, m) => s + m.foodItem.fats * m.quantity, 0),
+        totalCaloriesConsumed: dayMeals.reduce((s, m) => s + (m.foodItem?.calories || 0) * (m.quantity || 1), 0),
+        totalProtein: dayMeals.reduce((s, m) => s + (m.foodItem?.protein || 0) * (m.quantity || 1), 0),
+        totalCarbs: dayMeals.reduce((s, m) => s + (m.foodItem?.carbs || 0) * (m.quantity || 1), 0),
+        totalFats: dayMeals.reduce((s, m) => s + (m.foodItem?.fats || 0) * (m.quantity || 1), 0),
         totalCaloriesBurned: dayWorkouts.reduce((s, w) => s + (w.caloriesBurned || 0), 0),
-        totalVolume: dayWorkouts.reduce((s, w) => s + w.totalVolume, 0),
-        totalDuration: dayWorkouts.reduce((s, w) => s + w.duration, 0),
+        totalVolume: dayWorkouts.reduce((s, w) => s + (w.totalVolume || 0), 0),
+        totalDuration: dayWorkouts.reduce((s, w) => s + (w.duration || 0), 0),
       };
     });
     return result;
@@ -396,8 +396,8 @@ function MealsByType({ meals }: { meals: MealEntry[] }) {
     <div className="space-y-3">
       {typeOrder.filter((t) => grouped[t]).map((type) => {
         const typeMeals = grouped[type];
-        const typeCals = typeMeals.reduce((s, m) => s + m.foodItem.calories * m.quantity, 0);
-        const typePro = typeMeals.reduce((s, m) => s + m.foodItem.protein * m.quantity, 0);
+        const typeCals = typeMeals.reduce((s, m) => s + (m.foodItem?.calories || 0) * (m.quantity || 1), 0);
+        const typePro = typeMeals.reduce((s, m) => s + (m.foodItem?.protein || 0) * (m.quantity || 1), 0);
 
         return (
           <div key={type} className="bg-surface rounded-2xl border border-border/50 p-3.5">
@@ -409,12 +409,12 @@ function MealsByType({ meals }: { meals: MealEntry[] }) {
               {typeMeals.map((meal) => (
                 <div key={meal.id} className="flex items-center justify-between py-1 border-b border-border/20 last:border-0">
                   <div className="flex-1 min-w-0">
-                    <p className="text-text-primary text-xs font-medium truncate">{meal.foodItem.name}</p>
-                    <p className="text-text-muted text-[9px]">{meal.quantity} × {meal.foodItem.servingSize}{meal.foodItem.servingUnit}</p>
+                    <p className="text-text-primary text-xs font-medium truncate">{meal.foodItem?.name || "Food Item"}</p>
+                    <p className="text-text-muted text-[9px]">{meal.quantity || 1} × {meal.foodItem?.servingSize || ""}{meal.foodItem?.servingUnit || ""}</p>
                   </div>
                   <div className="text-right flex-shrink-0 ml-3">
-                    <p className="text-text-primary text-[10px] font-bold">{meal.foodItem.calories * meal.quantity} kcal</p>
-                    <p className="text-neon-blue text-[9px] font-bold">{Math.round(meal.foodItem.protein * meal.quantity)}g P</p>
+                    <p className="text-text-primary text-[10px] font-bold">{(meal.foodItem?.calories || 0) * (meal.quantity || 1)} kcal</p>
+                    <p className="text-neon-blue text-[9px] font-bold">{Math.round((meal.foodItem?.protein || 0) * (meal.quantity || 1))}g P</p>
                   </div>
                 </div>
               ))}
