@@ -74,6 +74,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     { id: "nutrition", icon: PieChart, label: "Nutrition", path: "/nutrition" },
     { id: "progress", icon: TrendingUp, label: "Progress", path: "/progress" },
     { id: "history", icon: History, label: "History", path: "/history" },
+    { id: "profile", icon: User, label: "Profile", path: "/profile" },
   ];
 
   return (

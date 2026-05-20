@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Flame, Droplets, Plus, Minus, ChevronRight, Zap, Trophy, Brain, Target, Footprints, Check } from "lucide-react";
+import { Flame, Droplets, Plus, Minus, ChevronRight, Zap, Trophy, Brain, Target, Footprints, Check, User } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { getGreeting } from "@/lib/utils";
 import { workoutPlans } from "@/features/workouts/data/workouts";
@@ -35,9 +35,17 @@ export default function HomeScreen() {
   return (
     <motion.div variants={stagger} initial="hidden" animate="show" className="px-4 pt-14 pb-4">
       {/* Header */}
-      <motion.div variants={item} className="mb-6">
-        <p className="text-text-secondary text-sm">{getGreeting()}</p>
-        <h1 className="text-2xl font-display font-bold text-text-primary">{user.name} 👋</h1>
+      <motion.div variants={item} className="mb-6 flex items-center justify-between">
+        <div>
+          <p className="text-text-secondary text-sm">{getGreeting()}</p>
+          <h1 className="text-2xl font-display font-bold text-text-primary">{user.name} 👋</h1>
+        </div>
+        <button
+          onClick={() => router.push("/profile")}
+          className="w-10 h-10 rounded-full gradient-neon flex items-center justify-center shadow-lg shadow-neon-green/20 hover:scale-105 active:scale-95 transition-transform"
+        >
+          <User className="w-5 h-5 text-background" strokeWidth={2.5} />
+        </button>
       </motion.div>
 
       {/* Streak Banner */}
