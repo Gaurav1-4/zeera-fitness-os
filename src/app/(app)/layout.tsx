@@ -39,10 +39,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const checkAdmin = async () => {
       const { createClient } = await import("@/utils/supabase/client");
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      // Use getSession() (local JWT read) instead of getUser() (network call)
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (user) {
-        const isAdmin = user.email?.toLowerCase() === "gauravgoyal2112007@gmail.com";
+      if (session?.user) {
+        const isAdmin = session.user.email?.toLowerCase() === "gauravgoyal2112007@gmail.com";
         if (isAdmin !== isSuperAdmin) {
           useAppStore.getState().setIsSuperAdmin(isAdmin);
         }
@@ -80,7 +81,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col h-dvh overflow-hidden bg-background">
       <main className="flex-1 overflow-y-auto">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           <motion.div
             key={pathname}
             initial={{ opacity: 0, y: 10 }}

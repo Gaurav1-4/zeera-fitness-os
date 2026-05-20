@@ -1,6 +1,5 @@
-"use client";
-import HomeScreen from "@/components/screens/HomeScreen";
+import { redirect } from "next/navigation";
 
-export default function HomePage() {
-  return <HomeScreen />;
+export default function RootPage() {
+  redirect("/home");
 }

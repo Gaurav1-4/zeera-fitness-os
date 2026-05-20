@@ -48,7 +48,7 @@ export function useAIInsights() {
     if (JSON.stringify(merged.map((m) => m.id)) !== JSON.stringify(insights.map((i) => i.id))) {
       setInsights(merged);
     }
-  }, [meals.length, workoutLogs.length, measurements.length, streak, waterIntake, user, setInsights, insights, meals, workoutLogs, measurements]);
+  }, [meals.length, workoutLogs.length, measurements.length, streak, waterIntake, user, setInsights]);
 }
 
 /**

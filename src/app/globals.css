@@ -22,8 +22,8 @@
   --color-warning: #ffa726;
   --color-danger: #ff5252;
   --color-info: #00d9ff;
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-display: "Outfit", "Inter", system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-outfit), var(--font-inter), system-ui, sans-serif;
 }
 
 @layer base {
