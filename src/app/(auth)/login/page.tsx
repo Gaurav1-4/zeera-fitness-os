@@ -17,37 +17,13 @@ export default function LoginPage() {
   const supabase = createClient();
 
   const handleGoogleLogin = async () => {
-    // BYPASS FOR GOOGLE LOGIN DUE TO OFFLINE SUPABASE SERVER
-    setLoading(true);
-    document.cookie = "sb-bypass-token=true; path=/";
-    
-    useAppStore.getState().setIsSuperAdmin(true);
-    
-    try {
-      const res = await fetch('/api/sync');
-      if (res.ok) {
-        const { profile } = await res.json();
-        if (profile) {
-          useAppStore.getState().setUser({
-            name: profile.name,
-            age: profile.age,
-            height: profile.height,
-            weight: profile.weight,
-            gender: profile.gender?.toLowerCase(),
-            calorieTarget: profile.calorieTarget,
-            proteinTarget: profile.proteinTarget,
-            carbsTarget: profile.carbsTarget,
-            fatsTarget: profile.fatsTarget,
-          });
-          useAppStore.getState().setOnboarded(profile.onboarded);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to restore progress:", err);
-    }
-
-    router.push("/home");
-    router.refresh();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    if (error) setError(error.message);
   };
 
   const handleForgotPassword = async () => {
