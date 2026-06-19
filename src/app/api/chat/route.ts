@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       temperature: 0.7,
     });
 
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
   } catch (error: any) {
     console.error('Chat API Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
