@@ -1,0 +1,93 @@
+
+> app@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.0.0.2:3000
+- Environments: .env.local, .env
+✓ Ready in 607ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+(node:40639) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."name", "public"."User"."avatarUrl", "public"."User"."onboarded", "public"."User"."age", "public"."User"."height", "public"."User"."weight", "public"."User"."gender"::text, "public"."User"."goal"::text, "public"."User"."activityLevel"::text, "public"."User"."experience"::text, "public"."User"."calorieTarget", "public"."User"."proteinTarget", "public"."User"."carbsTarget", "public"."User"."fatsTarget", "public"."User"."waterTarget", "public"."User"."createdAt", "public"."User"."updatedAt", "public"."User"."deletedAt" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."UserGoal"."id", "public"."UserGoal"."userId", "public"."UserGoal"."type", "public"."UserGoal"."targetValue", "public"."UserGoal"."currentValue", "public"."UserGoal"."unit", "public"."UserGoal"."deadline", "public"."UserGoal"."completed", "public"."UserGoal"."createdAt", "public"."UserGoal"."updatedAt" FROM "public"."UserGoal" WHERE "public"."UserGoal"."userId" = $1 OFFSET $2
+prisma:query SELECT "public"."WorkoutLog"."id", "public"."WorkoutLog"."userId", "public"."WorkoutLog"."workoutPlanId", "public"."WorkoutLog"."name", "public"."WorkoutLog"."date", "public"."WorkoutLog"."startTime", "public"."WorkoutLog"."endTime", "public"."WorkoutLog"."duration", "public"."WorkoutLog"."totalVolume", "public"."WorkoutLog"."caloriesBurned", "public"."WorkoutLog"."rpe", "public"."WorkoutLog"."notes", "public"."WorkoutLog"."isCompleted", "public"."WorkoutLog"."synced", "public"."WorkoutLog"."createdAt", "public"."WorkoutLog"."updatedAt" FROM "public"."WorkoutLog" WHERE "public"."WorkoutLog"."userId" = $1 ORDER BY "public"."WorkoutLog"."date" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."Streak"."id", "public"."Streak"."userId", "public"."Streak"."type", "public"."Streak"."currentStreak", "public"."Streak"."longestStreak", "public"."Streak"."lastActive", "public"."Streak"."updatedAt" FROM "public"."Streak" WHERE ("public"."Streak"."type" = $1 AND "public"."Streak"."userId" = $2) OFFSET $3
+prisma:query SELECT "public"."BodyMeasurement"."id", "public"."BodyMeasurement"."userId", "public"."BodyMeasurement"."date", "public"."BodyMeasurement"."weight", "public"."BodyMeasurement"."bodyFat", "public"."BodyMeasurement"."chest", "public"."BodyMeasurement"."arms", "public"."BodyMeasurement"."waist", "public"."BodyMeasurement"."hips", "public"."BodyMeasurement"."thighs", "public"."BodyMeasurement"."calves", "public"."BodyMeasurement"."createdAt" FROM "public"."BodyMeasurement" WHERE "public"."BodyMeasurement"."userId" = $1 ORDER BY "public"."BodyMeasurement"."date" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."NutritionLog"."id", "public"."NutritionLog"."userId", "public"."NutritionLog"."foodItemId", "public"."NutritionLog"."quantity", "public"."NutritionLog"."mealType"::text, "public"."NutritionLog"."date", "public"."NutritionLog"."synced", "public"."NutritionLog"."createdAt" FROM "public"."NutritionLog" WHERE "public"."NutritionLog"."userId" = $1 ORDER BY "public"."NutritionLog"."date" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."WorkoutLogExercise"."id", "public"."WorkoutLogExercise"."workoutLogId", "public"."WorkoutLogExercise"."exerciseId", "public"."WorkoutLogExercise"."order", "public"."WorkoutLogExercise"."notes" FROM "public"."WorkoutLogExercise" WHERE "public"."WorkoutLogExercise"."workoutLogId" IN ($1,$2,$3) OFFSET $4
+prisma:query SELECT "public"."FoodItem"."id", "public"."FoodItem"."name", "public"."FoodItem"."brand", "public"."FoodItem"."calories", "public"."FoodItem"."protein", "public"."FoodItem"."carbs", "public"."FoodItem"."fats", "public"."FoodItem"."fiber", "public"."FoodItem"."sugar", "public"."FoodItem"."sodium", "public"."FoodItem"."servingSize", "public"."FoodItem"."servingUnit", "public"."FoodItem"."category", "public"."FoodItem"."isVeg", "public"."FoodItem"."barcode", "public"."FoodItem"."verified", "public"."FoodItem"."createdAt" FROM "public"."FoodItem" WHERE "public"."FoodItem"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."WorkoutSet"."id", "public"."WorkoutSet"."workoutLogExerciseId", "public"."WorkoutSet"."setNumber", "public"."WorkoutSet"."type", "public"."WorkoutSet"."weight", "public"."WorkoutSet"."reps", "public"."WorkoutSet"."rpe", "public"."WorkoutSet"."isCompleted", "public"."WorkoutSet"."isPr", "public"."WorkoutSet"."restTimeTaken" FROM "public"."WorkoutSet" WHERE "public"."WorkoutSet"."workoutLogExerciseId" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Exercise"."id", "public"."Exercise"."slug", "public"."Exercise"."name", "public"."Exercise"."bodyPart", "public"."Exercise"."targetMuscle", "public"."Exercise"."equipment", "public"."Exercise"."difficulty", "public"."Exercise"."movementPattern", "public"."Exercise"."category", "public"."Exercise"."isCompound", "public"."Exercise"."isBeginnerFriendly", "public"."Exercise"."injuryCautions", "public"."Exercise"."commonMistakes", "public"."Exercise"."aiCoachingTips", "public"."Exercise"."mechanics", "public"."Exercise"."forceType", "public"."Exercise"."exerciseType", "public"."Exercise"."injuryRisk", "public"."Exercise"."instructions", "public"."Exercise"."tips", "public"."Exercise"."sourceProvider", "public"."Exercise"."sourceId", "public"."Exercise"."isVerified", "public"."Exercise"."qualityScore", "public"."Exercise"."secondaryMuscles", "public"."Exercise"."safetyWarnings", "public"."Exercise"."breathingTips", "public"."Exercise"."beginnerMods", "public"."Exercise"."advancedVars", "public"."Exercise"."createdAt", "public"."Exercise"."updatedAt", "public"."Exercise"."importedAt", "public"."Exercise"."deletedAt" FROM "public"."Exercise" WHERE "public"."Exercise"."id" IN (NULL) OFFSET $1
+Error [AI_APICallError]: The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.
+    at ignore-listed frames {
+  cause: undefined,
+  url: 'https://api.groq.com/openai/v1/chat/completions',
+  requestBodyValues: {
+    model: 'llama3-70b-8192',
+    user: undefined,
+    parallel_tool_calls: undefined,
+    max_tokens: undefined,
+    temperature: 0.7,
+    top_p: undefined,
+    frequency_penalty: undefined,
+    presence_penalty: undefined,
+    stop: undefined,
+    seed: undefined,
+    response_format: undefined,
+    reasoning_format: undefined,
+    reasoning_effort: undefined,
+    service_tier: undefined,
+    messages: [ [Object], [Object] ],
+    tools: undefined,
+    tool_choice: undefined,
+    stream: true
+  },
+  statusCode: 400,
+  responseHeaders: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cache-control': 'private, max-age=0, no-store, no-cache, must-revalidate',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': 'a0e0fc6a1f648cf7-AGR',
+    connection: 'keep-alive',
+    'content-length': '276',
+    'content-type': 'application/json',
+    date: 'Fri, 19 Jun 2026 07:57:58 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=dTDgaY1sEWOErRb0TVs.oyME2vC4jSKCSMyPLLwV7Sk-1781855878.7408113-1.0.1.1-CmIpdXMZo.4aGjbxILvCeLXwPoJ3IcYhJqaOoitUxxMZOI3z9kOus9zCdNS_KeHGrRjOqC.IS..Ob.PpNU8SmAUGDR3h29oGafctBZdBeQWqWHGElz5a6PB4DPSSv0Wt; HttpOnly; SameSite=None; Secure; Path=/; Domain=groq.com; Expires=Fri, 19 Jun 2026 08:27:58 GMT',
+    'strict-transport-security': 'max-age=15552000',
+    vary: 'Origin',
+    via: '1.1 google',
+    'x-groq-region': 'bom',
+    'x-request-id': 'req_01kvfe5zk1f5atj2rt0xskydp7'
+  },
+  responseBody: '{"error":{"message":"The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.","type":"invalid_request_error","code":"model_decommissioned"}}\n',
+  isRetryable: false,
+  data: {
+    error: {
+      message: 'The model `llama3-70b-8192` has been decommissioned and is no longer supported. Please refer to https://console.groq.com/docs/deprecations for a recommendation on which model to use instead.',
+      type: 'invalid_request_error'
+    }
+  }
+}
+ POST /api/chat 200 in 4.2s (next.js: 1393ms, proxy.ts: 91ms, application-code: 2.7s)
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."name", "public"."User"."avatarUrl", "public"."User"."onboarded", "public"."User"."age", "public"."User"."height", "public"."User"."weight", "public"."User"."gender"::text, "public"."User"."goal"::text, "public"."User"."activityLevel"::text, "public"."User"."experience"::text, "public"."User"."calorieTarget", "public"."User"."proteinTarget", "public"."User"."carbsTarget", "public"."User"."fatsTarget", "public"."User"."waterTarget", "public"."User"."createdAt", "public"."User"."updatedAt", "public"."User"."deletedAt" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."UserGoal"."id", "public"."UserGoal"."userId", "public"."UserGoal"."type", "public"."UserGoal"."targetValue", "public"."UserGoal"."currentValue", "public"."UserGoal"."unit", "public"."UserGoal"."deadline", "public"."UserGoal"."completed", "public"."UserGoal"."createdAt", "public"."UserGoal"."updatedAt" FROM "public"."UserGoal" WHERE "public"."UserGoal"."userId" = $1 OFFSET $2
+prisma:query SELECT "public"."Streak"."id", "public"."Streak"."userId", "public"."Streak"."type", "public"."Streak"."currentStreak", "public"."Streak"."longestStreak", "public"."Streak"."lastActive", "public"."Streak"."updatedAt" FROM "public"."Streak" WHERE ("public"."Streak"."type" = $1 AND "public"."Streak"."userId" = $2) OFFSET $3
+prisma:query SELECT "public"."WorkoutLog"."id", "public"."WorkoutLog"."userId", "public"."WorkoutLog"."workoutPlanId", "public"."WorkoutLog"."name", "public"."WorkoutLog"."date", "public"."WorkoutLog"."startTime", "public"."WorkoutLog"."endTime", "public"."WorkoutLog"."duration", "public"."WorkoutLog"."totalVolume", "public"."WorkoutLog"."caloriesBurned", "public"."WorkoutLog"."rpe", "public"."WorkoutLog"."notes", "public"."WorkoutLog"."isCompleted", "public"."WorkoutLog"."synced", "public"."WorkoutLog"."createdAt", "public"."WorkoutLog"."updatedAt" FROM "public"."WorkoutLog" WHERE "public"."WorkoutLog"."userId" = $1 ORDER BY "public"."WorkoutLog"."date" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."WorkoutLogExercise"."id", "public"."WorkoutLogExercise"."workoutLogId", "public"."WorkoutLogExercise"."exerciseId", "public"."WorkoutLogExercise"."order", "public"."WorkoutLogExercise"."notes" FROM "public"."WorkoutLogExercise" WHERE "public"."WorkoutLogExercise"."workoutLogId" IN ($1,$2,$3) OFFSET $4
+prisma:query SELECT "public"."WorkoutSet"."id", "public"."WorkoutSet"."workoutLogExerciseId", "public"."WorkoutSet"."setNumber", "public"."WorkoutSet"."type", "public"."WorkoutSet"."weight", "public"."WorkoutSet"."reps", "public"."WorkoutSet"."rpe", "public"."WorkoutSet"."isCompleted", "public"."WorkoutSet"."isPr", "public"."WorkoutSet"."restTimeTaken" FROM "public"."WorkoutSet" WHERE "public"."WorkoutSet"."workoutLogExerciseId" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."Exercise"."id", "public"."Exercise"."slug", "public"."Exercise"."name", "public"."Exercise"."bodyPart", "public"."Exercise"."targetMuscle", "public"."Exercise"."equipment", "public"."Exercise"."difficulty", "public"."Exercise"."movementPattern", "public"."Exercise"."category", "public"."Exercise"."isCompound", "public"."Exercise"."isBeginnerFriendly", "public"."Exercise"."injuryCautions", "public"."Exercise"."commonMistakes", "public"."Exercise"."aiCoachingTips", "public"."Exercise"."mechanics", "public"."Exercise"."forceType", "public"."Exercise"."exerciseType", "public"."Exercise"."injuryRisk", "public"."Exercise"."instructions", "public"."Exercise"."tips", "public"."Exercise"."sourceProvider", "public"."Exercise"."sourceId", "public"."Exercise"."isVerified", "public"."Exercise"."qualityScore", "public"."Exercise"."secondaryMuscles", "public"."Exercise"."safetyWarnings", "public"."Exercise"."breathingTips", "public"."Exercise"."beginnerMods", "public"."Exercise"."advancedVars", "public"."Exercise"."createdAt", "public"."Exercise"."updatedAt", "public"."Exercise"."importedAt", "public"."Exercise"."deletedAt" FROM "public"."Exercise" WHERE "public"."Exercise"."id" IN (NULL) OFFSET $1
+prisma:query SELECT "public"."BodyMeasurement"."id", "public"."BodyMeasurement"."userId", "public"."BodyMeasurement"."date", "public"."BodyMeasurement"."weight", "public"."BodyMeasurement"."bodyFat", "public"."BodyMeasurement"."chest", "public"."BodyMeasurement"."arms", "public"."BodyMeasurement"."waist", "public"."BodyMeasurement"."hips", "public"."BodyMeasurement"."thighs", "public"."BodyMeasurement"."calves", "public"."BodyMeasurement"."createdAt" FROM "public"."BodyMeasurement" WHERE "public"."BodyMeasurement"."userId" = $1 ORDER BY "public"."BodyMeasurement"."date" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."NutritionLog"."id", "public"."NutritionLog"."userId", "public"."NutritionLog"."foodItemId", "public"."NutritionLog"."quantity", "public"."NutritionLog"."mealType"::text, "public"."NutritionLog"."date", "public"."NutritionLog"."synced", "public"."NutritionLog"."createdAt" FROM "public"."NutritionLog" WHERE "public"."NutritionLog"."userId" = $1 ORDER BY "public"."NutritionLog"."date" DESC LIMIT $2 OFFSET $3
+prisma:query SELECT "public"."FoodItem"."id", "public"."FoodItem"."name", "public"."FoodItem"."brand", "public"."FoodItem"."calories", "public"."FoodItem"."protein", "public"."FoodItem"."carbs", "public"."FoodItem"."fats", "public"."FoodItem"."fiber", "public"."FoodItem"."sugar", "public"."FoodItem"."sodium", "public"."FoodItem"."servingSize", "public"."FoodItem"."servingUnit", "public"."FoodItem"."category", "public"."FoodItem"."isVeg", "public"."FoodItem"."barcode", "public"."FoodItem"."verified", "public"."FoodItem"."createdAt" FROM "public"."FoodItem" WHERE "public"."FoodItem"."id" IN (NULL) OFFSET $1
+ POST /api/chat 200 in 2.4s (next.js: 9ms, proxy.ts: 6ms, application-code: 2.3s)

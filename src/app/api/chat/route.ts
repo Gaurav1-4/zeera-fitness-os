@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // Call Groq and stream the response
     const result = await streamText({
-      model: groq('llama3-70b-8192'),
+      model: groq('llama-3.3-70b-versatile'),
       system: systemPrompt,
       messages,
       temperature: 0.7,
