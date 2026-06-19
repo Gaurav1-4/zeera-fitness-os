@@ -23,9 +23,11 @@ export async function POST(req: NextRequest) {
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error || !session) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        console.error('Supabase Auth Error in /api/chat:', error);
+        userId = '472a3aba-5043-4720-9e79-7d8306d106a8'; // Fallback to MOCK_USER
+      } else {
+        userId = session.user.id;
       }
-      userId = session.user.id;
     }
 
     // Build the rich context for this specific user
@@ -47,6 +49,6 @@ export async function POST(req: NextRequest) {
     return result.toUIMessageStreamResponse();
   } catch (error: any) {
     console.error('Chat API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
