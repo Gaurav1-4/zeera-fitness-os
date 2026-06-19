@@ -30,14 +30,11 @@ export default function CoachScreen() {
 
   // In AI SDK v6, useChat returns { messages, sendMessage, status }.
   // `sendMessage` accepts a message object to send programmatically.
-  const { messages, sendMessage, status, error, input: chatInput, handleInputChange: handleChatInputChange } = useChat();
+  const { messages, sendMessage, status, error } = useChat();
 
   const isLoading = status === 'submitted' || status === 'streaming';
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
-    handleChatInputChange(e);
-  };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value);
 
   const handleSubmit = async (e?: React.FormEvent, overrideText?: string) => {
     e?.preventDefault();
