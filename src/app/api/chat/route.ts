@@ -44,7 +44,6 @@ export async function POST(req: NextRequest) {
 
     // Use toUIMessageStreamResponse — this is the format the @ai-sdk/react
     // useChat hook's DefaultChatTransport expects in SDK v6.
-    // toTextStreamResponse() returns raw text which the client silently drops.
     return result.toUIMessageStreamResponse();
   } catch (error: any) {
     console.error('Chat API Error:', error);

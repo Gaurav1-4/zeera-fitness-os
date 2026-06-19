@@ -12,19 +12,25 @@ import { useState, useRef, useEffect } from "react";
  * All content lives in `message.parts`, which is an array of typed objects.
  */
 function getMessageText(message: UIMessage): string {
-  if (!message.parts || message.parts.length === 0) return '';
-  return message.parts
-    .filter((p) => p.type === 'text')
-    .map((p) => (p as any).text ?? '')
-    .join('');
+  if (message.parts && message.parts.length > 0) {
+    return message.parts
+      .filter((p) => p.type === 'text')
+      .map((p) => (p as any).text ?? '')
+      .join('');
+  }
+  // Fallback for runtime content if the parser uses older format
+  if ('content' in message && typeof message.content === 'string') {
+    return message.content as string;
+  }
+  return '';
 }
 
 export default function CoachScreen() {
   const [input, setInput] = useState('');
 
   // In AI SDK v6, useChat returns { messages, sendMessage, status }.
-  // `sendMessage` accepts { text: string } to send a user message.
-  const { messages, sendMessage, status } = useChat();
+  // `sendMessage` accepts a message object to send programmatically.
+  const { messages, sendMessage, status, error } = useChat();
 
   const isLoading = status === 'submitted' || status === 'streaming';
   
@@ -183,7 +189,14 @@ export default function CoachScreen() {
               );
             })}
             
-            {isLoading && (
+            {error && (
+          <div className="flex items-center space-x-2 text-red-500 bg-red-500/10 p-3 rounded-lg text-sm border border-red-500/20">
+            <Flame className="w-5 h-5 flex-shrink-0" />
+            <p>Error: {error.message || 'Something went wrong connecting to the AI Coach.'}</p>
+          </div>
+        )}
+
+        {isLoading && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
