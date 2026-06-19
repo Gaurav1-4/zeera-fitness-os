@@ -1,15 +1,32 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { useAppStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Send, Sparkles, User, Dumbbell, Utensils } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 export default function CoachScreen() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: "/api/chat",
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
+  const isLoading = status === "submitted" || status === "streaming";
+  const [input, setInput] = useState("");
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+  };
+
+  const handleSubmit = (e?: any, customData?: any) => {
+    if (e?.preventDefault) e.preventDefault();
+    const msg = customData?.data?.message || input;
+    if (!msg.trim()) return;
+    sendMessage({ text: msg });
+    if (!customData?.data?.message) {
+      setInput("");
+    }
+  };
   
   const { user, streak, meals } = useAppStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -20,8 +37,8 @@ export default function CoachScreen() {
     return m.date.startsWith(today);
   });
   
-  const currentCalories = todayMeals.reduce((sum, m) => sum + m.calories, 0);
-  const currentProtein = todayMeals.reduce((sum, m) => sum + m.protein, 0);
+  const currentCalories = todayMeals.reduce((sum, m) => sum + (m.foodItem.calories * m.quantity), 0);
+  const currentProtein = todayMeals.reduce((sum, m) => sum + (m.foodItem.protein * m.quantity), 0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -153,7 +170,7 @@ export default function CoachScreen() {
                       : "bg-surface border border-border/50 text-text-primary rounded-tl-sm whitespace-pre-wrap"
                   }`}
                 >
-                  {m.content}
+                  {m.parts.filter(p => p.type === 'text').map(p => (p as any).text).join('')}
                 </div>
               </motion.div>
             ))}
