@@ -1,7 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { TextStreamChatTransport } from "ai";
+import { DefaultChatTransport } from "ai";
 import { useAppStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Send, Sparkles, User, Dumbbell, Utensils } from "lucide-react";
@@ -9,7 +9,7 @@ import { useState, useRef, useEffect } from "react";
 
 export default function CoachScreen() {
   const { messages, sendMessage, status } = useChat({
-    transport: new TextStreamChatTransport({ api: "/api/chat" }),
+    transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
   const isLoading = status === "submitted" || status === "streaming";
   const [input, setInput] = useState("");
