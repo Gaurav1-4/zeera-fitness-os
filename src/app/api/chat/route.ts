@@ -10,15 +10,19 @@ export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json();
 
-    const supabase = await createClient();
-    const { data: { session }, error } = await supabase.auth.getSession();
-    
-    if (error || !session) {
-      console.error('Supabase Auth Error in /api/chat:', error);
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    let userId = '';
+    if (process.env.NODE_ENV === 'development') {
+      userId = '472a3aba-5043-4720-9e79-7d8306d106a8';
+    } else {
+      const supabase = await createClient();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session) {
+        console.error('Supabase Auth Error in /api/chat:', error);
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      userId = session.user.id;
     }
-
-    const userId = session.user.id;
 
     // Build the rich context for this specific user
     const userContext = await buildUserContext(userId);
@@ -42,12 +46,7 @@ export async function POST(req: NextRequest) {
       temperature: 0.7,
     });
 
-    return result.toUIMessageStreamResponse({
-      getErrorMessage: (err: any) => {
-        console.error('Async Stream Error in /api/chat:', err);
-        return err.message || String(err);
-      }
-    });
+    return result.toUIMessageStreamResponse();
   } catch (error: any) {
     console.error('Chat API Error (Sync):', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
