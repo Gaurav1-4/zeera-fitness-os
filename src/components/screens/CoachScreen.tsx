@@ -28,8 +28,9 @@ function getMessageText(message: UIMessage): string {
 export default function CoachScreen() {
   const [input, setInput] = useState('');
 
-  // In standard AI SDK `useChat`, use `append` to programmatically add a message.
-  const { messages, append, status, error, input: chatInput, handleInputChange: handleChatInputChange, handleSubmit: handleChatSubmit } = useChat();
+  // In AI SDK v6, useChat returns { messages, sendMessage, status }.
+  // `sendMessage` accepts a message object to send programmatically.
+  const { messages, sendMessage, status, error, input: chatInput, handleInputChange: handleChatInputChange } = useChat();
 
   const isLoading = status === 'submitted' || status === 'streaming';
   
@@ -44,10 +45,7 @@ export default function CoachScreen() {
     if (!msg.trim() || isLoading) return;
     setInput('');
     
-    await append({
-      role: 'user',
-      content: msg
-    });
+    await sendMessage({ text: msg });
   };
   
   const { user, streak, meals } = useAppStore();
