@@ -28,6 +28,7 @@ export async function updateSession(request: NextRequest) {
   // 1. Fast path: Public routes bypass auth entirely
   if (
     pathname.startsWith('/api/exercises') ||
+    pathname.startsWith('/api/chat') ||
     pathname.startsWith('/auth') ||
     pathname.includes('.')
   ) {
