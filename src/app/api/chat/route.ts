@@ -8,25 +8,26 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json();
-
     let userId = '';
-    const secretBypass = req.headers.get('x-secret-test-token');
     
-    if (secretBypass === 'antigravity-test') {
-      userId = '472a3aba-5043-4720-9e79-7d8306d106a8';
-    } else if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development') {
       userId = '472a3aba-5043-4720-9e79-7d8306d106a8';
     } else {
       const supabase = await createClient();
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const { data: { user }, error } = await supabase.auth.getUser();
       
-      if (error || !session) {
+      if (error || !user) {
         console.error('Supabase Auth Error in /api/chat:', error);
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
-      userId = session.user.id;
+      userId = user.id;
     }
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { messages } = await req.json();
 
     // Build the rich context for this specific user
     const userContext = await buildUserContext(userId);
@@ -42,17 +43,6 @@ export async function POST(req: NextRequest) {
     const customGroq = createGroq({
       apiKey: process.env.GROQ_API_KEY,
     });
-
-    try {
-      const { generateText } = await import('ai');
-      await generateText({
-        model: customGroq('llama-3.3-70b-versatile'),
-        prompt: "test"
-      });
-    } catch (err: any) {
-      console.error("CRITICAL SYNC GROQ ERROR:", err);
-      return NextResponse.json({ error: err.message || String(err) }, { status: 500 });
-    }
 
     const result = streamText({
       model: customGroq('llama-3.3-70b-versatile'),
