@@ -26,7 +26,11 @@ export async function POST(req: NextRequest) {
     // Construct the final system prompt with guardrails and persona
     const systemPrompt = buildSystemPrompt(userContext);
 
-    // Call Groq and stream the response
+    if (!process.env.GROQ_API_KEY) {
+      console.error('CRITICAL: GROQ_API_KEY is undefined in environment!');
+      return NextResponse.json({ error: "Configuration Error" }, { status: 500 });
+    }
+
     const result = streamText({
       model: groq('llama-3.3-70b-versatile'),
       system: systemPrompt,
@@ -34,11 +38,14 @@ export async function POST(req: NextRequest) {
       temperature: 0.7,
     });
 
-    // Use toUIMessageStreamResponse — this is the format the @ai-sdk/react
-    // useChat hook's DefaultChatTransport expects in SDK v6.
-    return result.toUIMessageStreamResponse();
+    return result.toUIMessageStreamResponse({
+      getErrorMessage: (err: any) => {
+        console.error('Async Stream Error in /api/chat:', err);
+        return err.message || String(err);
+      }
+    });
   } catch (error: any) {
-    console.error('Chat API Error:', error);
+    console.error('Chat API Error (Sync):', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
