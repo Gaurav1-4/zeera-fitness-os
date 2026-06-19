@@ -10,25 +10,15 @@ export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json();
 
-    // Determine the user ID using the bypass token or Supabase Auth
-    const cookieStore = await cookies();
-    const bypassToken = cookieStore.get('sb-bypass-token')?.value;
-
-    let userId: string;
-
-    if (bypassToken) {
-      userId = '472a3aba-5043-4720-9e79-7d8306d106a8';
-    } else {
-      const supabase = await createClient();
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error || !session) {
-        console.error('Supabase Auth Error in /api/chat:', error);
-        userId = '472a3aba-5043-4720-9e79-7d8306d106a8'; // Fallback to MOCK_USER
-      } else {
-        userId = session.user.id;
-      }
+    const supabase = await createClient();
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error || !session) {
+      console.error('Supabase Auth Error in /api/chat:', error);
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const userId = session.user.id;
 
     // Build the rich context for this specific user
     const userContext = await buildUserContext(userId);

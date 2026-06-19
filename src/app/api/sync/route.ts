@@ -6,29 +6,18 @@ import { cookies } from "next/headers";
 export async function POST(req: Request) {
   try {
     const cookieStore = await cookies();
-    const hasBypass = cookieStore.get('sb-bypass-token');
-    let user = null;
-
-    if (hasBypass) {
-      user = {
-        id: '472a3aba-5043-4720-9e79-7d8306d106a8',
-        email: 'gauravgoyal2112007@gmail.com',
-      };
-    } else {
-      const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          cookies: {
-            getAll() {
-              return cookieStore.getAll();
-            },
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
           },
-        }
-      );
-      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-      user = supabaseUser;
-    }
+        },
+      }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -178,29 +167,18 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     const cookieStore = await cookies();
-    const hasBypass = cookieStore.get('sb-bypass-token');
-    let user = null;
-
-    if (hasBypass) {
-      user = {
-        id: '472a3aba-5043-4720-9e79-7d8306d106a8',
-        email: 'gauravgoyal2112007@gmail.com',
-      };
-    } else {
-      const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          cookies: {
-            getAll() {
-              return cookieStore.getAll();
-            },
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
           },
-        }
-      );
-      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-      user = supabaseUser;
-    }
+        },
+      }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
