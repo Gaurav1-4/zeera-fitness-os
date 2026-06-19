@@ -47,8 +47,7 @@ export async function POST(req: NextRequest) {
       const { generateText } = await import('ai');
       await generateText({
         model: customGroq('llama-3.3-70b-versatile'),
-        prompt: "test",
-        maxTokens: 1
+        prompt: "test"
       });
     } catch (err: any) {
       console.error("CRITICAL SYNC GROQ ERROR:", err);
