@@ -1,5 +1,5 @@
 import { createGroq } from '@ai-sdk/groq';
-import { streamText } from 'ai';
+import { streamText, convertToCoreMessages } from 'ai';
 import { buildUserContext } from '@/services/ai-engine/contextBuilder';
 import { buildSystemPrompt } from '@/services/ai-engine/promptBuilder';
 import { cookies } from 'next/headers';
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     const result = streamText({
       model: customGroq('llama-3.3-70b-versatile'),
       system: systemPrompt,
-      messages,
+      messages: convertToCoreMessages(messages),
       temperature: 0.7,
     });
 
