@@ -1,15 +1,24 @@
 "use client";
 
-import { useChat } from "@ai-sdk/react";
+import { useChat, UIMessage } from "@ai-sdk/react";
 import { useAppStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Send, Sparkles, User, Dumbbell, Utensils } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 export default function CoachScreen() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: "/api/chat",
-  });
+  const [input, setInput] = useState('');
+  const { messages, sendMessage, status } = useChat();
+  const isLoading = status === 'submitted' || status === 'streaming';
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value);
+  const handleSubmit = (e?: React.FormEvent, opts?: { data?: { message: string } }) => {
+    e?.preventDefault();
+    const msg = opts?.data?.message || input;
+    if (!msg.trim()) return;
+    sendMessage({ role: 'user', parts: [{ type: 'text', text: msg }] });
+    setInput('');
+  };
   
   const { user, streak, meals } = useAppStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -20,8 +29,8 @@ export default function CoachScreen() {
     return m.date.startsWith(today);
   });
   
-  const currentCalories = todayMeals.reduce((sum, m) => sum + m.calories, 0);
-  const currentProtein = todayMeals.reduce((sum, m) => sum + m.protein, 0);
+  const currentCalories = todayMeals.reduce((sum, m) => sum + (m.foodItem.calories * m.quantity), 0);
+  const currentProtein = todayMeals.reduce((sum, m) => sum + (m.foodItem.protein * m.quantity), 0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -39,10 +48,7 @@ export default function CoachScreen() {
   ];
 
   const handleSuggestionClick = (action: string) => {
-    handleSubmit(new Event('submit') as any, { data: { message: action }});
-    // For a cleaner implementation, we could simulate an event or set the input, 
-    // but the simplest is to invoke handleSubmit with synthetic event.
-    // However, useChat allows sending messages via `append`
+    handleSubmit(undefined, { data: { message: action }});
   };
 
   return (
@@ -139,7 +145,7 @@ export default function CoachScreen() {
           </motion.div>
         ) : (
           <div className="space-y-6">
-            {messages.map((m) => (
+            {messages.map((m: UIMessage) => (
               <motion.div
                 key={m.id}
                 initial={{ opacity: 0, y: 10 }}
@@ -153,7 +159,7 @@ export default function CoachScreen() {
                       : "bg-surface border border-border/50 text-text-primary rounded-tl-sm whitespace-pre-wrap"
                   }`}
                 >
-                  {m.content}
+                  {m.parts?.map((p: any) => p.type === 'text' ? p.text : '').join('')}
                 </div>
               </motion.div>
             ))}
