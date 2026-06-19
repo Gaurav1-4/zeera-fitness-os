@@ -12,6 +12,19 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  const isLoginOrSignup = pathname.startsWith('/login') || pathname.startsWith('/signup')
+
+  // Check for local auth bypass
+  const hasBypass = request.cookies.get('sb-bypass-token')
+  if (hasBypass) {
+    if (isLoginOrSignup) {
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/home'
+      return NextResponse.redirect(redirectUrl)
+    }
+    return supabaseResponse
+  }
+
   // 1. Fast path: Public routes bypass auth entirely
   if (
     pathname.startsWith('/api/exercises') ||
@@ -28,8 +41,6 @@ export async function updateSession(request: NextRequest) {
     c.name.includes('supabase') || 
     c.name.includes('auth-token')
   )
-
-  const isLoginOrSignup = pathname.startsWith('/login') || pathname.startsWith('/signup')
 
   if (!hasAuthCookie) {
     if (!isLoginOrSignup) {
