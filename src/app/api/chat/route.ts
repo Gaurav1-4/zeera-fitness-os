@@ -1,4 +1,4 @@
-import { groq } from '@ai-sdk/groq';
+import { createGroq } from '@ai-sdk/groq';
 import { streamText } from 'ai';
 import { buildUserContext } from '@/services/ai-engine/contextBuilder';
 import { buildSystemPrompt } from '@/services/ai-engine/promptBuilder';
@@ -31,8 +31,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Configuration Error" }, { status: 500 });
     }
 
+    const customGroq = createGroq({
+      apiKey: process.env.GROQ_API_KEY,
+    });
+
     const result = streamText({
-      model: groq('llama-3.3-70b-versatile'),
+      model: customGroq('llama-3.3-70b-versatile'),
       system: systemPrompt,
       messages,
       temperature: 0.7,
