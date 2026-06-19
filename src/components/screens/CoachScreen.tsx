@@ -1,23 +1,42 @@
 "use client";
 
-import { useChat, UIMessage } from "@ai-sdk/react";
+import { useChat, type UIMessage } from "@ai-sdk/react";
 import { useAppStore } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
 import { Flame, Send, Sparkles, User, Dumbbell, Utensils } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
+/**
+ * Extracts visible text from a UIMessage's parts array.
+ * In AI SDK v6, messages no longer have a `.content` string field.
+ * All content lives in `message.parts`, which is an array of typed objects.
+ */
+function getMessageText(message: UIMessage): string {
+  if (!message.parts || message.parts.length === 0) return '';
+  return message.parts
+    .filter((p) => p.type === 'text')
+    .map((p) => (p as any).text ?? '')
+    .join('');
+}
+
 export default function CoachScreen() {
   const [input, setInput] = useState('');
+
+  // In AI SDK v6, useChat returns { messages, sendMessage, status }.
+  // `sendMessage` accepts { text: string } to send a user message.
   const { messages, sendMessage, status } = useChat();
+
   const isLoading = status === 'submitted' || status === 'streaming';
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value);
-  const handleSubmit = (e?: React.FormEvent, opts?: { data?: { message: string } }) => {
+
+  const handleSubmit = async (e?: React.FormEvent, overrideText?: string) => {
     e?.preventDefault();
-    const msg = opts?.data?.message || input;
-    if (!msg.trim()) return;
-    sendMessage({ role: 'user', parts: [{ type: 'text', text: msg }] });
+    const msg = overrideText || input;
+    if (!msg.trim() || isLoading) return;
     setInput('');
+    // SDK v6 sendMessage: pass { text: string } for a simple text message
+    await sendMessage({ text: msg });
   };
   
   const { user, streak, meals } = useAppStore();
@@ -48,7 +67,7 @@ export default function CoachScreen() {
   ];
 
   const handleSuggestionClick = (action: string) => {
-    handleSubmit(undefined, { data: { message: action }});
+    handleSubmit(undefined, action);
   };
 
   return (
@@ -131,11 +150,7 @@ export default function CoachScreen() {
               {suggestActions.map((action, i) => (
                 <button
                   key={i}
-                  // We use a hack here to set the input value instead since append isn't available from useChat in this context easily without destructuring it
-                  onClick={() => {
-                    const fakeEvent = { target: { value: action } } as any;
-                    handleInputChange(fakeEvent);
-                  }}
+                  onClick={() => handleSuggestionClick(action)}
                   className="px-4 py-2 bg-surface border border-border/50 rounded-full text-sm text-text-secondary hover:text-neon-green hover:border-neon-green/50 transition-colors"
                 >
                   {action}
@@ -145,24 +160,28 @@ export default function CoachScreen() {
           </motion.div>
         ) : (
           <div className="space-y-6">
-            {messages.map((m: UIMessage) => (
-              <motion.div
-                key={m.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div 
-                  className={`max-w-[85%] rounded-2xl p-4 ${
-                    m.role === "user" 
-                      ? "bg-neon-green text-black rounded-tr-sm" 
-                      : "bg-surface border border-border/50 text-text-primary rounded-tl-sm whitespace-pre-wrap"
-                  }`}
+            {messages.map((m: UIMessage) => {
+              const text = getMessageText(m);
+              if (!text && m.role === 'assistant') return null; // skip empty assistant messages during streaming start
+              return (
+                <motion.div
+                  key={m.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  {(m as any).content || (m.parts?.map((p: any) => p.type === 'text' ? p.text : '').join(''))}
-                </div>
-              </motion.div>
-            ))}
+                  <div 
+                    className={`max-w-[85%] rounded-2xl p-4 ${
+                      m.role === "user" 
+                        ? "bg-neon-green text-black rounded-tr-sm" 
+                        : "bg-surface border border-border/50 text-text-primary rounded-tl-sm whitespace-pre-wrap"
+                    }`}
+                  >
+                    {text}
+                  </div>
+                </motion.div>
+              );
+            })}
             
             {isLoading && (
               <motion.div

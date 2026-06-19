@@ -35,14 +35,17 @@ export async function POST(req: NextRequest) {
     const systemPrompt = buildSystemPrompt(userContext);
 
     // Call Groq and stream the response
-    const result = await streamText({
+    const result = streamText({
       model: groq('llama-3.3-70b-versatile'),
       system: systemPrompt,
       messages,
       temperature: 0.7,
     });
 
-    return result.toTextStreamResponse();
+    // Use toUIMessageStreamResponse — this is the format the @ai-sdk/react
+    // useChat hook's DefaultChatTransport expects in SDK v6.
+    // toTextStreamResponse() returns raw text which the client silently drops.
+    return result.toUIMessageStreamResponse();
   } catch (error: any) {
     console.error('Chat API Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
