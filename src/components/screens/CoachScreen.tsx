@@ -159,7 +159,7 @@ export default function CoachScreen() {
                       : "bg-surface border border-border/50 text-text-primary rounded-tl-sm whitespace-pre-wrap"
                   }`}
                 >
-                  {m.parts?.map((p: any) => p.type === 'text' ? p.text : '').join('')}
+                  {m.content || (m.parts?.map((p: any) => p.type === 'text' ? p.text : '').join(''))}
                 </div>
               </motion.div>
             ))}
